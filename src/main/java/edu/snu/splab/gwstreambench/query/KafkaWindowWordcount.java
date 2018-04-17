@@ -4,6 +4,8 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.contrib.streaming.state.OptionsFactory;
+import org.apache.flink.contrib.streaming.state.PredefinedOptions;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -11,6 +13,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
+import org.rocksdb.BlockBasedTableConfig;
+import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.DBOptions;
 
 import java.util.Properties;
 
@@ -46,6 +51,18 @@ public final class KafkaWindowWordcount {
     if (stateBackend.equals("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
       rocksDBStateBackend.setDbStoragePath(dbPath);
+      rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
+      rocksDBStateBackend.setOptions(new OptionsFactory() {
+        @Override
+        public DBOptions createDBOptions(DBOptions dbOptions) {
+          return dbOptions;
+        }
+        @Override
+        public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
+          return columnFamilyOptions
+              .setTableFormatConfig(new BlockBasedTableConfig().setNoBlockCache(true));
+        }
+      });
       env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
