@@ -25,12 +25,14 @@ public final class KafkaWindowWordcount {
     final String zookeeperAddress;
     final String stateBackend;
     final Integer windowSize;
+    final Integer slidingInterval;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
       zookeeperAddress = params.get("zookeeper_address");
       stateBackend = params.get("state_backend");
       windowSize = params.getInt("window_size");
+      slidingInterval = params.getInt("sliding_interval");
     } catch (Exception e) {
       System.err.println("No port specified. Please run 'SocketWindowWordCount --port <port>'");
       return;
@@ -51,9 +53,9 @@ public final class KafkaWindowWordcount {
     properties.setProperty("bootstrap.servers", brokerAddress);
     properties.setProperty("zookeeper.connect", zookeeperAddress);
 
-    // get input data by connecting to the socket
+    // get input data by connecting to the kafka server
     DataStream<String> text = env.
-        addSource(new FlinkKafkaConsumer011<String>("word", new SimpleStringSchema(), properties));
+        addSource(new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties));
 
     // parse the data, group it, window it, and aggregate the counts
     DataStream<String> windowCounts = text
@@ -65,7 +67,7 @@ public final class KafkaWindowWordcount {
           }
         })
         .keyBy("word")
-        .countWindow(windowSize, 1)
+        .countWindow(windowSize, slidingInterval)
         .reduce(new ReduceFunction<WordWithCount>() {
           public WordWithCount reduce(WordWithCount a, WordWithCount b) {
             return new WordWithCount(a.word, a.count + b.count);
