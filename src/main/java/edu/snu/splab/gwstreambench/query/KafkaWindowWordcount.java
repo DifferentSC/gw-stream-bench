@@ -24,17 +24,19 @@ public final class KafkaWindowWordcount {
     final String brokerAddress;
     final String zookeeperAddress;
     final String stateBackend;
+    final String dbPath;
     final Integer windowSize;
     final Integer slidingInterval;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
       zookeeperAddress = params.get("zookeeper_address");
+      dbPath = params.get("rocksdb_path");
       stateBackend = params.get("state_backend");
       windowSize = params.getInt("window_size");
       slidingInterval = params.getInt("sliding_interval");
-    } catch (Exception e) {
-      System.err.println("No port specified. Please run 'SocketWindowWordCount --port <port>'");
+    } catch (final Exception e) {
+      System.err.println("Missing configuration!");
       return;
     }
 
@@ -42,7 +44,9 @@ public final class KafkaWindowWordcount {
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     // Set the state backend.
     if (stateBackend.equals("rocksdb")) {
-      env.setStateBackend(new RocksDBStateBackend("file:///tmp/"));
+      final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
+      rocksDBStateBackend.setDbStoragePath(dbPath);
+      env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
     } else {
