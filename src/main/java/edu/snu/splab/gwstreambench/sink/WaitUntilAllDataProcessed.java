@@ -10,7 +10,7 @@ import java.util.Properties;
 /**
  * The kafka source which generates a fixed number of tuples.
  */
-public class KafkaFixedNumTupleThpCounter {
+public class WaitUntilAllDataProcessed {
 
   public static final void main(final String[] args) throws Exception {
 
@@ -19,10 +19,6 @@ public class KafkaFixedNumTupleThpCounter {
     final Option kafkaBrokerAddressOpt = new Option("b", true, "The kafka broker address.");
     kafkaBrokerAddressOpt.setRequired(true);
     options.addOption(kafkaBrokerAddressOpt);
-
-    final Option tupleNumOpt = new Option("n", true, "The number of all tuples");
-    tupleNumOpt.setRequired(true);
-    options.addOption(tupleNumOpt);
 
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
@@ -37,7 +33,6 @@ public class KafkaFixedNumTupleThpCounter {
       return;
     }
     final String brokerAddress = cmd.getOptionValue("b");
-    final int tupleNum = Integer.valueOf(cmd.getOptionValue("n"));
 
     final Properties props = new Properties();
     props.put("bootstrap.servers", brokerAddress);
@@ -50,25 +45,11 @@ public class KafkaFixedNumTupleThpCounter {
     final KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
     consumer.subscribe(Arrays.asList("result"));
     int count;
-    final long startTime = System.currentTimeMillis();
-    long endTime = 0L;
-    int zeroRecordCount = 0;
+    // Wait until no KAFKA records come out.
     do  {
       final ConsumerRecords<String, String> records = consumer.poll(1000);
       count = records.count();
-      if (count > 0) {
-        zeroRecordCount = 0;
-      } else {
-        if (zeroRecordCount == 0) {
-          endTime = System.currentTimeMillis();
-        }
-        zeroRecordCount++;
-      }
-    } while (zeroRecordCount < 10);
-    final double elapsedTime = (endTime - startTime) / 1000.;
-    final double thp = (double) tupleNum / elapsedTime;
-    System.out.println("Elasped time = " + elapsedTime);
-    System.out.println("Throughput = " + thp);
+    } while (count > 0);
     System.exit(0);
   }
 }
