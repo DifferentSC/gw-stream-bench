@@ -54,7 +54,6 @@ public final class KafkaWindowWordcount {
 
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     // Set the state backend.
     if (stateBackend.equals("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
@@ -95,6 +94,8 @@ public final class KafkaWindowWordcount {
     // get input data by connecting to the kafka server
     DataStream<String> text = env.
         addSource(new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties));
+
+    System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
 
     // parse the data, group it, window it, and aggregate the counts
     DataStream<String> windowCounts = text
