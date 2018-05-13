@@ -54,7 +54,7 @@ public final class KafkaWindowWordcount {
 
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    System.out.println("CheckpointingEnabled: " + env.isChainingEnabled());
+    System.out.println("CheckpointingConfig: " + env.getCheckpointConfig());
     // Set the state backend.
     if (stateBackend.equals("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
