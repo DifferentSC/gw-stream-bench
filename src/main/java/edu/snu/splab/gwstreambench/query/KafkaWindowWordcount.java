@@ -4,6 +4,7 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.contrib.streaming.state.FileStateBackend;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.PredefinedOptions;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
@@ -30,6 +31,7 @@ public final class KafkaWindowWordcount {
     final String zookeeperAddress;
     final String stateBackend;
     final String dbPath;
+    final String stateStorePath;
     final Integer blockCacheSize;
     final Integer windowSize;
     final Integer slidingInterval;
@@ -39,6 +41,7 @@ public final class KafkaWindowWordcount {
       brokerAddress = params.get("broker_address");
       zookeeperAddress = params.get("zookeeper_address");
       dbPath = params.get("rocksdb_path");
+      stateStorePath = params.get("stateStorePath", "");
       blockCacheSize = params.getInt("block_cache_size");
       stateBackend = params.get("state_backend");
       windowSize = params.getInt("window_size");
@@ -77,6 +80,9 @@ public final class KafkaWindowWordcount {
       env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
+    } else if (stateBackend.equals("file")) {
+      final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath);
+      env.setStateBackend(fileStateBackend);
     } else {
       throw new IllegalArgumentException("The state backend should be one of rocksdb / mem");
     }
