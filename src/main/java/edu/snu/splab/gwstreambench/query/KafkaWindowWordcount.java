@@ -54,6 +54,7 @@ public final class KafkaWindowWordcount {
 
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    System.out.println("CheckpointingEnabled: " + env.isChainingEnabled());
     // Set the state backend.
     if (stateBackend.equals("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
@@ -84,7 +85,7 @@ public final class KafkaWindowWordcount {
       final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath);
       env.setStateBackend(fileStateBackend);
     } else {
-      throw new IllegalArgumentException("The state backend should be one of rocksdb / mem");
+      throw new IllegalArgumentException("The state backend should be one of rocksdb / file / mem");
     }
 
     final Properties properties = new Properties();
