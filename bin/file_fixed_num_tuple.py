@@ -78,7 +78,7 @@ log_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.sink.KafkaFixedNumTupleThpCounter",
-    "-b", args.broker_address,
+    "-b", "localhost:9092",
     "-n", str(args.tuple_num),
 ]
 
