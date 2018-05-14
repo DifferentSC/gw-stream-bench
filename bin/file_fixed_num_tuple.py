@@ -40,37 +40,38 @@ flink_common_command_line = [
 
 state_backend_command_line = []
 
-if args.exp_mode is "mem":
+if args.exp_mode == "mem":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "mem"
     ]
 
-elif args.exp_mode is "rocksdb_sata":
+elif args.exp_mode == "rocksdb_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/tmp",
         "--block_cache_size", 0
     ]
 
-elif args.exp_mode is "rocksdb_nvme":
+elif args.exp_mode == "rocksdb_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", 0
     ]
 
-elif args.exp_mode is "file_sata":
+elif args.exp_mode == "file_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
         "--state_store_path", "/home/gyewon/state_tmp"
     ]
 
-elif args.exp_mode is "file_nvme":
+elif args.exp_mode == "file_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
         "--state_store_path", "/nvme"
     ]
 
+print flink_command_line
 subprocess.Popen(flink_command_line)
 
 log_command_line = [
