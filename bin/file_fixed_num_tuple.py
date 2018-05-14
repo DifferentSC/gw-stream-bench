@@ -82,7 +82,7 @@ while True:
             "flink", "list"
         ], stdout=job_list_file)
         lines = job_list_file.readlines()
-        if lines[1].strip() == "No running jobs":
+        if lines[1].strip().startswith("No running jobs"):
             break
 
 elapsed_time = time.timed() - start_time
