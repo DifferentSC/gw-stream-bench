@@ -11,7 +11,6 @@ import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.rocksdb.BlockBasedTableConfig;
@@ -35,7 +34,7 @@ public final class KafkaWindowWordcount {
     final Integer blockCacheSize;
     final Integer windowSize;
     final Integer slidingInterval;
-    final Integer k;
+    final String textFilePath;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -46,7 +45,7 @@ public final class KafkaWindowWordcount {
       stateBackend = params.get("state_backend");
       windowSize = params.getInt("window_size");
       slidingInterval = params.getInt("sliding_interval");
-      k = params.getInt("k");
+      textFilePath = params.get("text_file_path");
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -92,8 +91,7 @@ public final class KafkaWindowWordcount {
     properties.setProperty("zookeeper.connect", zookeeperAddress);
 
     // get input data by connecting to the kafka server
-    DataStream<String> text = env.
-        addSource(new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties));
+    DataStream<String> text = env.readTextFile(textFilePath);
 
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
 
@@ -154,11 +152,12 @@ public final class KafkaWindowWordcount {
               }
             })**/
         .reduce((x, y) -> new Tuple2<>(x.f0, x.f1 + y.f1))
+        .filter(x -> x.f0.equals("1"))
         .map(x -> x.toString())
         .returns(String.class);
 
     windowCounts.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
-    env.execute("Top-K Wordcount");
+    env.execute("Windowed Wordcount");
   }
 }
