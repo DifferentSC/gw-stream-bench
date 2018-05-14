@@ -77,10 +77,10 @@ subprocess.Popen(flink_command_line)
 start_time = time.time()
 time.sleep(1)
 while True:
-    subprocess.call([
-        "flink", "list", ">", "job_list.txt"
-    ])
     with open("job_list.txt") as job_list_file:
+        subprocess.call([
+            "flink", "list"
+        ], stdout=job_list_file)
         lines = job_list_file.readlines()
         if lines[1].strip() == "No running jobs":
             break
