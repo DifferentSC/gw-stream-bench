@@ -154,7 +154,8 @@ public final class KafkaWindowWordcount {
               }
             })**/
         .reduce((x, y) -> new Tuple2<>(x.f0, x.f1 + y.f1))
-        .map(x -> x.toString());
+        .map(x -> x.toString())
+        .returns(String.class);
 
     windowCounts.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
