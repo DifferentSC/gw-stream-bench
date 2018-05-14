@@ -77,7 +77,7 @@ subprocess.Popen(flink_command_line)
 start_time = time.time()
 time.sleep(1)
 while True:
-    with open("job_list.txt") as job_list_file:
+    with open("job_list.txt", "w") as job_list_file:
         subprocess.call([
             "flink", "list"
         ], stdout=job_list_file)
