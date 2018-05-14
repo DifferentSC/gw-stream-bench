@@ -41,7 +41,7 @@ public final class KafkaWindowWordcount {
       brokerAddress = params.get("broker_address");
       zookeeperAddress = params.get("zookeeper_address");
       dbPath = params.get("rocksdb_path", "");
-      stateStorePath = params.get("stateStorePath", "");
+      stateStorePath = params.get("state_store_path", "");
       blockCacheSize = params.getInt("block_cache_size", 0);
       stateBackend = params.get("state_backend");
       windowSize = params.getInt("window_size");
