@@ -81,6 +81,7 @@ while True:
         subprocess.call([
             "flink", "list"
         ], stdout=job_list_file)
+    with open("job_list.txt", "w") as job_list_file:
         lines = job_list_file.readlines()
         if lines[1].strip().startswith("No running jobs"):
             break
