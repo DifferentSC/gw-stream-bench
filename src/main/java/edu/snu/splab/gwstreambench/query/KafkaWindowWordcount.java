@@ -104,8 +104,7 @@ public final class KafkaWindowWordcount {
             }
           }
         })
-        .keyBy(0)
-        .countWindow(windowSize, slidingInterval)
+        .countWindowAll(windowSize, slidingInterval)
         /**
         .aggregate(
             new AggregateFunction<String, Map<String, Integer>, Map<String, Integer>>() {
