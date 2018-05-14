@@ -33,9 +33,9 @@ flink_common_command_line = [
     "/home/gyewon/gw-stream-bench/target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
-    "--window_size", args.window_size,
-    "--sliding_interval", args.sliding_interval,
-    "--text_file_path", args.text_file_path
+    "--window_size", str(args.window_size),
+    "--sliding_interval", str(args.sliding_interval),
+    "--text_file_path", str(args.text_file_path)
 ]
 
 state_backend_command_line = []
@@ -49,14 +49,14 @@ elif args.exp_mode == "rocksdb_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/tmp",
-        "--block_cache_size", 0
+        "--block_cache_size", str(0)
     ]
 
 elif args.exp_mode == "rocksdb_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
-        "--block_cache_size", 0
+        "--block_cache_size", str(0)
     ]
 
 elif args.exp_mode == "file_sata":
