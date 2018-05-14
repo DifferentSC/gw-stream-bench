@@ -1,8 +1,8 @@
 package edu.snu.splab.gwstreambench.query;
 
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.FileStateBackend;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
@@ -18,7 +18,7 @@ import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.DBOptions;
 
-import java.util.*;
+import java.util.Properties;
 
 /**
  * The kafka window word count pipeline.
@@ -99,14 +99,16 @@ public final class KafkaWindowWordcount {
 
     // parse the data, group it, window it, and aggregate the counts
     DataStream<String> windowCounts = text
-        .flatMap(new FlatMapFunction<String, String>() {
-          public void flatMap(String value, Collector<String> out) {
+        .flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
+          public void flatMap(String value, Collector<Tuple2<String, Integer>> out) {
             for (String word : value.split("\\s")) {
-              out.collect(word);
+              out.collect(new Tuple2<>(word, 1));
             }
           }
         })
-        .countWindowAll(windowSize, slidingInterval)
+        .keyBy(0)
+        .countWindow(windowSize, slidingInterval)
+        /**
         .aggregate(
             new AggregateFunction<String, Map<String, Integer>, Map<String, Integer>>() {
               @Override
@@ -150,15 +152,9 @@ public final class KafkaWindowWordcount {
                 }
                 return map1;
               }
-            })
-        .flatMap(new FlatMapFunction<Map<String, Integer>, String>() {
-          @Override
-          public void flatMap(Map<String, Integer> result, Collector<String> out) throws Exception {
-            for (final Map.Entry<String, Integer> entry: result.entrySet()) {
-              out.collect(entry.getKey());
-            }
-          }
-        });
+            })**/
+        .reduce((x, y) -> new Tuple2<>(x.f0, x.f1 + y.f1))
+        .map(x -> x.toString());
 
     windowCounts.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
