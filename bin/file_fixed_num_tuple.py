@@ -86,6 +86,6 @@ while True:
         if lines[1].strip().startswith("No running jobs"):
             break
 
-elapsed_time = time.timed() - start_time
+elapsed_time = time.time() - start_time
 thp = args.tuple_num / elapsed_time
 print "Thp = %f" % thp
