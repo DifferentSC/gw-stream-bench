@@ -1,5 +1,6 @@
 import argparse
 import subprocess
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("exp_mode")
@@ -73,14 +74,17 @@ elif args.exp_mode == "file_nvme":
 
 print flink_command_line
 subprocess.Popen(flink_command_line)
+start_time = time.time()
+time.sleep(1)
+while True:
+    subprocess.call([
+        "flink", "list", ">", "job_list.txt"
+    ])
+    with open("job_list.txt") as job_list_file:
+        lines = job_list_file.readlines()
+        if lines[1].strip() == "No running jobs":
+            break
 
-log_command_line = [
-    "java", "-cp",
-    "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.sink.KafkaFixedNumTupleThpCounter",
-    "-b", "localhost:9092",
-    "-n", str(args.tuple_num),
-]
-
-# Start logging
-subprocess.call(log_command_line)
+elapsed_time = time.timed() - start_time
+thp = args.tuple_num / elapsed_time
+print "Thp = %f" % thp
