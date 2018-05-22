@@ -9,6 +9,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,7 +68,7 @@ public class FileSamzaExpDataGen {
     final Random random = new Random();
     final Path filePath = Paths.get(filePathString);
     final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
-    final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE);
+    final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE));
 
     final List<String> marginList = new ArrayList<>();
     for (int i = 0; i < 1000; i ++) {
@@ -79,7 +80,7 @@ public class FileSamzaExpDataGen {
     }
 
     for (int i = 0; i < tupleNum; i++) {
-      final String marginString = marginList.get(random.nextInt(1000));
+      final String marginString = marginList.get(i % 1000);
       bufferedWriter.write(wordGenerator.getNextWord() + " " + marginString + "\n");
     }
     bufferedWriter.flush();
