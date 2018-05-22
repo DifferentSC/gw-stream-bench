@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -67,10 +69,20 @@ public class FileSamzaExpDataGen {
     final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
     final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE);
 
+
+    final List<String> marginList = new ArrayList<>();
+    for (int i = 0; i < 1000; i ++) {
+      final byte[] marginBytes = new byte[margin + 1];
+      for (int j = 0; j < margin; j++) {
+        marginBytes[j] = (byte) (random.nextInt(26) + 'a');
+      }
+      marginBytes[margin] = '\0';
+      marginList.add(new String(marginBytes));
+    }
+
     for (int i = 0; i < tupleNum; i++) {
-      final byte[] byteArray = new byte[margin + 1];
-      random.nextBytes(byteArray);
-      bufferedWriter.write(wordGenerator.getNextWord() + " " + new String(byteArray) + "\n");
+      final String marginString = marginList.get(random.nextInt(1000));
+      bufferedWriter.write(wordGenerator.getNextWord() + " " + marginString + "\n");
     }
     bufferedWriter.flush();
     bufferedWriter.close();
