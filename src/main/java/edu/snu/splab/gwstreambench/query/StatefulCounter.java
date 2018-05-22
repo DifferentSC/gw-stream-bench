@@ -29,8 +29,9 @@ public class StatefulCounter extends RichMapFunction<Tuple2<Integer, String>, Tu
   public void open(final Configuration config) {
     ValueStateDescriptor<Tuple3<Integer, Integer, String>> descriptor
         = new ValueStateDescriptor<> (
-            "average",
+            "counter",
         TypeInformation.of(new TypeHint<Tuple3<Integer, Integer, String>>() {}),
         Tuple3.of(0, 0, ""));
+    state = getRuntimeContext().getState(descriptor);
   }
 }
