@@ -69,10 +69,7 @@ public class FileSamzaExpDataGen {
 
     for (int i = 0; i < tupleNum; i++) {
       final byte[] byteArray = new byte[margin + 1];
-      for (int j = 0; j < margin; j++) {
-        byteArray[j] = (byte) (random.nextInt(26) + 'a');
-      }
-      byteArray[margin] = '\0';
+      random.nextBytes(byteArray);
       bufferedWriter.write(wordGenerator.getNextWord() + " " + new String(byteArray) + "\n");
     }
     bufferedWriter.flush();
