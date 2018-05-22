@@ -37,6 +37,7 @@ flink_common_command_line = [
     "/home/gyewon/gw-stream-bench/target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
+    "--text_file_path", str(args.text_file_path)
 ]
 
 state_backend_command_line = []
