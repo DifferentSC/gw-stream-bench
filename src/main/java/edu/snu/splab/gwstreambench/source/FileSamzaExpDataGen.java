@@ -79,8 +79,9 @@ public class FileSamzaExpDataGen {
     }
 
     for (int i = 0; i < tupleNum; i++) {
-      final String marginString = marginList.get(i % 1000);
-      bufferedWriter.write(wordGenerator.getNextWord() + " " + marginString + "\n");
+      final String marginString = marginList.get(random.nextInt(1000));
+      int key = random.nextInt(numKeys);
+      bufferedWriter.write(key + " " + marginString + "\n");
     }
     bufferedWriter.flush();
     bufferedWriter.close();
