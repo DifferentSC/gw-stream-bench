@@ -73,7 +73,7 @@ public class FileSamzaExpDataGen {
         byteArray[j] = (byte) (random.nextInt(26) + 'a');
       }
       byteArray[margin] = '\0';
-      bufferedWriter.write(wordGenerator.getNextWord() + " " + new String(byteArray));
+      bufferedWriter.write(wordGenerator.getNextWord() + " " + new String(byteArray) + "\n");
     }
     bufferedWriter.flush();
     bufferedWriter.close();
