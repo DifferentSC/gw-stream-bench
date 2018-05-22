@@ -61,6 +61,13 @@ elif args.exp_mode == "rocksdb_nvme":
         "--block_cache_size", str(0)
     ]
 
+elif args.exp_mode == "rocksdb_cache":
+    flink_command_line = flink_common_command_line + [
+        "--state_backend", "rocksdb",
+        "--rocksdb_path", "/nvme",
+        "--block_cache_size", str(2048)
+    ]
+
 elif args.exp_mode == "file_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
