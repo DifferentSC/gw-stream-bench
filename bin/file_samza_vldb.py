@@ -19,7 +19,7 @@ make_file_command_line = [
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.source.FileSamzaExpDataGen",
     "-f", args.text_file_path,
-    "-n", str(args.window_size),
+    "-n", str(args.tuple_num),
     "-k", str(args.key_num),
     "-s", str(args.skewness),
     "-m", str(args.margin)
