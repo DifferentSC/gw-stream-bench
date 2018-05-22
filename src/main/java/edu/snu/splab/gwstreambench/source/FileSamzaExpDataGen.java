@@ -69,14 +69,12 @@ public class FileSamzaExpDataGen {
     final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
     final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE);
 
-
     final List<String> marginList = new ArrayList<>();
     for (int i = 0; i < 1000; i ++) {
-      final byte[] marginBytes = new byte[margin + 1];
+      final byte[] marginBytes = new byte[margin];
       for (int j = 0; j < margin; j++) {
         marginBytes[j] = (byte) (random.nextInt(26) + 'a');
       }
-      marginBytes[margin] = '\0';
       marginList.add(new String(marginBytes));
     }
 
