@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Random;
 
 /**
  * Write fixed number of tuples to a file.
@@ -55,6 +56,7 @@ public class FileFixNumTupleGenSource {
     final int tupleNum = Integer.valueOf(cmd.getOptionValue("n"));
     final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
     final double skewness = Double.valueOf(cmd.getOptionValue("s"));
+    final Random random = new Random();
 
     final Path filePath = Paths.get(filePathString);
     final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);

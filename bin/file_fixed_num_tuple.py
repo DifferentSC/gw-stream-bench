@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import time
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("exp_mode")
@@ -14,17 +15,21 @@ parser.add_argument("sliding_interval", type=int)
 args = parser.parse_args()
 
 # Create the datafile
-fill_window_command_line = [
+make_file_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.source.FileFixNumTupleGenSource",
     "-f", args.text_file_path,
-    "-n", str(args.window_size),
+    "-n", str(args.tuple_num),
     "-k", str(args.key_num),
     "-s", str(args.skewness)
 ]
 
-subprocess.call(fill_window_command_line)
+if not os.path.isfile(args.text_file_path):
+    subprocess.call(make_file_command_line)
+    print "Finished creating data file..."
+else:
+    print "Use already existing file..."
 
 print "Finished creating data file..."
 
