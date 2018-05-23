@@ -13,7 +13,7 @@ args = parser.parse_args()
 command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
+    "KafkaWordGeneratingSource",
     "-b", args.broker_address,
     "-r", str(args.event_rate),
     "-t", str(args.timer_num),

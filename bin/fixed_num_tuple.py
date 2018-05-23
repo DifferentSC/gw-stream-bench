@@ -14,7 +14,7 @@ args = parser.parse_args()
 fill_window_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.source.KafkaFixNumTupleGenSource",
+    "KafkaFixNumTupleGenSource",
     "-b", args.broker_address,
     "-n", str(args.window_size),
     "-k", str(args.key_num),
@@ -27,7 +27,7 @@ subprocess.Popen(fill_window_command_line)
 wait_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.sink.KafkaFixedNumTupleThpCounter",
+    "KafkaFixedNumTupleThpCounter",
     "-b", args.broker_address,
     "-n", str(args.window_size)
 ]
@@ -36,7 +36,7 @@ subprocess.call(wait_command_line)
 source_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.source.KafkaFixNumTupleGenSource",
+    "KafkaFixNumTupleGenSource",
     "-b", args.broker_address,
     "-n", str(args.tuple_num),
     "-k", str(args.key_num),
@@ -49,7 +49,7 @@ subprocess.Popen(source_command_line)
 log_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.sink.KafkaFixedNumTupleThpCounter",
+    "KafkaFixedNumTupleThpCounter",
     "-b", args.broker_address,
     "-n", str(args.tuple_num),
 ]

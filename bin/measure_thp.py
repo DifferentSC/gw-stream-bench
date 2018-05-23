@@ -11,7 +11,7 @@ for i in range(0, 6):
     command_line = [
         "java", "-cp",
         "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-        "edu.snu.splab.gwstreambench.sink.KafkaThpCounter",
+        "KafkaThpCounter",
         "-b", args.broker_address,
         "-m", str(args.measuring_time),
     ]

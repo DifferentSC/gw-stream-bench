@@ -18,7 +18,7 @@ args = parser.parse_args()
 make_file_command_line = [
     "java", "-cp",
     "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.source.FileFixNumTupleGenSource",
+    "FileFixNumTupleGenSource",
     "-f", args.text_file_path,
     "-n", str(args.tuple_num),
     "-k", str(args.key_num),
