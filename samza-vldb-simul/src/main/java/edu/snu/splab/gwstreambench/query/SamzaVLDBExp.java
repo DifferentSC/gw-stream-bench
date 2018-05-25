@@ -33,6 +33,9 @@ public class SamzaVLDBExp {
     final String stateStorePath;
     final Integer blockCacheSize;
     final String textFilePath;
+    final Boolean cacheEnabled;
+    final Integer cacheSize;
+    final Integer batchWriteSize;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -42,6 +45,9 @@ public class SamzaVLDBExp {
       blockCacheSize = params.getInt("block_cache_size", 0);
       stateBackend = params.get("state_backend");
       textFilePath = params.get("text_file_path");
+      cacheEnabled = params.getBoolean("cache_enabled", false);
+      cacheSize = params.getInt("cache_size", 0);
+      batchWriteSize = params.getInt("batch_write_size", 0);
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -50,10 +56,13 @@ public class SamzaVLDBExp {
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     // Set the state backend.
-    if (stateBackend.equals("rocksdb")) {
+    if (stateBackend.startsWith("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
       rocksDBStateBackend.setDbStoragePath(dbPath);
       rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
+      rocksDBStateBackend.setCacheEnabled(cacheEnabled);
+      rocksDBStateBackend.setCacheSize(cacheSize);
+      rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
       rocksDBStateBackend.setOptions(new OptionsFactory() {
         @Override
         public DBOptions createDBOptions(DBOptions dbOptions) {
@@ -72,7 +81,12 @@ public class SamzaVLDBExp {
           }
         }
       });
-      env.setStateBackend(rocksDBStateBackend);
+      if (stateBackend.equals("rocksdb_batch")) {
+
+      } else {
+        rocksDBStateBackend.setCacheEnabled(false);
+        env.setStateBackend(rocksDBStateBackend);
+      }
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
     } else if (stateBackend.equals("file")) {
