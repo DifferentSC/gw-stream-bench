@@ -66,8 +66,7 @@ elif args.exp_mode == "rocksdb_nvme":
     ]
 
 elif args.exp_mode == "rocksdb_nvme_wb":
-    [
-        flink_command_line = flink_common_command_line + [
+    flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
