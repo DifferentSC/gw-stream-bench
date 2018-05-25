@@ -66,7 +66,7 @@ elif args.exp_mode == "rocksdb_nvme_wb":
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
-        "--cache_enabled", str(True),
+        "--cache_enabled", "true",
         "--cache_size", str(10000),
         "--batch_write_size", str(5000)
     ]
