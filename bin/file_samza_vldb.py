@@ -34,7 +34,7 @@ else:
 flink_command_line = None
 flink_common_command_line = [
     "flink", "run",
-    "/home/gyewon/gw-stream-bench/target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
+    "./samza-vldb-simul/target/samza-vldb-simul-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
     "--text_file_path", str(args.text_file_path)
