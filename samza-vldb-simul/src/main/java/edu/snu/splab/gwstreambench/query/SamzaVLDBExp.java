@@ -33,7 +33,7 @@ public class SamzaVLDBExp {
     final String stateStorePath;
     final Integer blockCacheSize;
     final String textFilePath;
-    final Boolean cacheEnabled;
+    final String cacheOption;
     final Integer cacheSize;
     final Integer batchWriteSize;
     try {
@@ -45,8 +45,8 @@ public class SamzaVLDBExp {
       blockCacheSize = params.getInt("block_cache_size", 0);
       stateBackend = params.get("state_backend");
       textFilePath = params.get("text_file_path");
-      cacheEnabled = params.getBoolean("cache_enabled", false);
-      System.out.println("Cache Enabled = " + cacheEnabled);
+      cacheOption = params.get("cache_option", "NONE");
+      System.out.println("Cache Option = " + cacheOption);
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
     } catch (final Exception e) {
@@ -61,7 +61,7 @@ public class SamzaVLDBExp {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
       rocksDBStateBackend.setDbStoragePath(dbPath);
       rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
-      rocksDBStateBackend.setCacheEnabled(cacheEnabled);
+      rocksDBStateBackend.setCacheOption(cacheOption);
       rocksDBStateBackend.setCacheSize(cacheSize);
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
       rocksDBStateBackend.setOptions(new OptionsFactory() {

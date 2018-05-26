@@ -58,18 +58,16 @@ elif args.exp_mode == "rocksdb_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(0),
-        "--cache_enabled", "false"
+        "--block_cache_size", str(0)
     ]
 
-elif args.exp_mode == "rocksdb_nvme_cache_only":
+elif args.exp_mode == "rocksdb_nvme_lru":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
-        "--cache_enabled", "true",
-        "--cache_size", str(10000),
-        "--batch_write_size", str(1)
+        "--cache_option", "LRU",
+        "--cache_size", str(10000)
     ]
 
 elif args.exp_mode == "rocksdb_nvme_wb":
@@ -77,19 +75,18 @@ elif args.exp_mode == "rocksdb_nvme_wb":
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
-        "--cache_enabled", "true",
+        "--cache_enabled", "WriteBatch",
         "--cache_size", str(10000),
         "--batch_write_size", str(5000)
     ]
 
-elif args.exp_mode == "rocksdb_sata_cache_only":
+elif args.exp_mode == "rocksdb_sata_lru":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
+        "--rocksdb_path", "LRU",
         "--block_cache_size", str(0),
         "--cache_enabled", "true",
-        "--cache_size", str(10000),
-        "--batch_write_size", str(1)
+        "--cache_size", str(10000)
     ]
 
 elif args.exp_mode == "rocksdb_sata_wb":
@@ -97,12 +94,12 @@ elif args.exp_mode == "rocksdb_sata_wb":
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/tmp",
         "--block_cache_size", str(0),
-        "--cache_enabled", "true",
+        "--cache_enabled", "WriteBatch",
         "--cache_size", str(10000),
         "--batch_write_size", str(5000)
     ]
 
-elif args.exp_mode == "rocksdb_cache":
+elif args.exp_mode == "rocksdb_mem_cache":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
