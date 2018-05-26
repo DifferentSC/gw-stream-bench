@@ -82,12 +82,7 @@ public class SamzaVLDBExp {
           }
         }
       });
-      if (stateBackend.equals("rocksdb_batch")) {
-
-      } else {
-        rocksDBStateBackend.setCacheEnabled(false);
-        env.setStateBackend(rocksDBStateBackend);
-      }
+      env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
     } else if (stateBackend.equals("file")) {
