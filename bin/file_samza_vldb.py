@@ -75,7 +75,7 @@ elif args.exp_mode == "rocksdb_nvme_wb":
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
-        "--cache_enabled", "WriteBatch",
+        "--cache_option", "WriteBatch",
         "--cache_size", str(10000),
         "--batch_write_size", str(5000)
     ]
@@ -83,9 +83,9 @@ elif args.exp_mode == "rocksdb_nvme_wb":
 elif args.exp_mode == "rocksdb_sata_lru":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
-        "--rocksdb_path", "LRU",
+        "--rocksdb_path", "/tmp",
         "--block_cache_size", str(0),
-        "--cache_enabled", "true",
+        "--cache_option", "LRU",
         "--cache_size", str(10000)
     ]
 
@@ -94,7 +94,7 @@ elif args.exp_mode == "rocksdb_sata_wb":
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/tmp",
         "--block_cache_size", str(0),
-        "--cache_enabled", "WriteBatch",
+        "--cache_option", "WriteBatch",
         "--cache_size", str(10000),
         "--batch_write_size", str(5000)
     ]
