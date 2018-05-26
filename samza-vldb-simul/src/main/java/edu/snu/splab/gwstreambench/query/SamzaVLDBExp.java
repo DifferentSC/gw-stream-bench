@@ -46,6 +46,7 @@ public class SamzaVLDBExp {
       stateBackend = params.get("state_backend");
       textFilePath = params.get("text_file_path");
       cacheEnabled = params.getBoolean("cache_enabled", false);
+      System.out.println("Cache Enabled = " + cacheEnabled);
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
     } catch (final Exception e) {
