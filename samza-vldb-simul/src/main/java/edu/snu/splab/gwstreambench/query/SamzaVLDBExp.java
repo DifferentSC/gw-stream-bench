@@ -78,7 +78,7 @@ public class SamzaVLDBExp {
                     .setNoBlockCache(true)
                     .setBlockSize(16 * 1024)
                 )
-                .setWriteBufferSize(512 * 1024 * 1024)
+                .setWriteBufferSize(0)
                 .setMaxWriteBufferNumber(16)
                 .setTargetFileSizeBase(128 * 1024 * 1024)
                 .setLevelZeroSlowdownWritesTrigger(40)
