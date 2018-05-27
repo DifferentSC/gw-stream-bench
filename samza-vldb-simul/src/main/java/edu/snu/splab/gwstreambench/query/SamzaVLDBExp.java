@@ -73,11 +73,16 @@ public class SamzaVLDBExp {
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
           if (blockCacheSize == 0) {
             return columnFamilyOptions
-                .setTableFormatConfig(new BlockBasedTableConfig().setNoBlockCache(true));
+                .setTableFormatConfig(new BlockBasedTableConfig()
+                    .setNoBlockCache(true)
+                    .setBlockSize(1024)
+                )
+                .setWriteBufferSize(1024 * 1024 * 1024);
           } else {
             return columnFamilyOptions
                 .setTableFormatConfig(new BlockBasedTableConfig()
                     .setNoBlockCache(false)
+                    .setBlockSize(1024)
                     .setBlockCacheSize(blockCacheSize * 1024 * 1024));
           }
         }
