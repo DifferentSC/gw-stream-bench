@@ -7,7 +7,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.FileStateBackend;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
-import org.apache.flink.contrib.streaming.state.PredefinedOptions;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -60,7 +59,7 @@ public class SamzaVLDBExp {
     if (stateBackend.startsWith("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
       rocksDBStateBackend.setDbStoragePath(dbPath);
-      rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
+      //rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
       rocksDBStateBackend.setCacheOption(cacheOption);
       rocksDBStateBackend.setCacheSize(cacheSize);
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
@@ -69,7 +68,7 @@ public class SamzaVLDBExp {
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           return dbOptions
-              .setIncreaseParallelism(32);
+              .setBytesPerSync(1024 * 1024);
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
@@ -77,9 +76,14 @@ public class SamzaVLDBExp {
             return columnFamilyOptions
                 .setTableFormatConfig(new BlockBasedTableConfig()
                     .setNoBlockCache(true)
-                    .setBlockSize(1024)
+                    .setBlockSize(16 * 1024)
                 )
-                .setWriteBufferSize(1024 * 1024 * 1024)
+                .setWriteBufferSize(512 * 1024 * 1024)
+                .setMaxWriteBufferNumber(16)
+                .setTargetFileSizeBase(128 * 1024 * 1024)
+                .setMaxMemCompactionLevel(8)
+                .setLevelZeroSlowdownWritesTrigger(40)
+                .setLevelZeroStopWritesTrigger(46)
                 .setBloomLocality(1)
                 .setOptimizeFiltersForHits(false);
           } else {
