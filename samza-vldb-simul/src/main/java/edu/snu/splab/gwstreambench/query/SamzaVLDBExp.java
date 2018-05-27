@@ -81,7 +81,6 @@ public class SamzaVLDBExp {
                 .setWriteBufferSize(512 * 1024 * 1024)
                 .setMaxWriteBufferNumber(16)
                 .setTargetFileSizeBase(128 * 1024 * 1024)
-                .setMaxMemCompactionLevel(8)
                 .setLevelZeroSlowdownWritesTrigger(40)
                 .setLevelZeroStopWritesTrigger(46)
                 .setMaxBytesForLevelBase(512 * 1024 * 1024)
