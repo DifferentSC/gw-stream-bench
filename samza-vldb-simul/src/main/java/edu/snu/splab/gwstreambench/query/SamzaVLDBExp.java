@@ -69,7 +69,6 @@ public class SamzaVLDBExp {
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           return dbOptions
-              .createStatistics()
               .setIncreaseParallelism(32);
         }
         @Override
