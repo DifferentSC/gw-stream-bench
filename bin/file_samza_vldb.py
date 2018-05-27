@@ -77,7 +77,7 @@ elif args.exp_mode == "rocksdb_nvme_wb":
         "--block_cache_size", str(0),
         "--cache_option", "WriteBatch",
         "--cache_size", str(1000),
-        "--batch_write_size", str(500)
+        "--batch_write_size", str(10)
     ]
 
 elif args.exp_mode == "rocksdb_sata_lru":
