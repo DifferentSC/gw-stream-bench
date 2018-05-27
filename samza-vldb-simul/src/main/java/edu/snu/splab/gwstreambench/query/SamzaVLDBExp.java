@@ -66,8 +66,11 @@ public class SamzaVLDBExp {
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
       rocksDBStateBackend.setOptions(new OptionsFactory() {
         @Override
-        public DBOptions createDBOptions(DBOptions dbOptions) {
-          return dbOptions;
+        public DBOptions createDBOptions(DBOptions dbOptions)
+        {
+          return dbOptions
+              .createStatistics()
+              .setIncreaseParallelism(32);
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
@@ -77,7 +80,9 @@ public class SamzaVLDBExp {
                     .setNoBlockCache(true)
                     .setBlockSize(1024)
                 )
-                .setWriteBufferSize(1024 * 1024 * 1024);
+                .setWriteBufferSize(1024 * 1024 * 1024)
+                .setBloomLocality(1)
+                .setOptimizeFiltersForHits(false);
           } else {
             return columnFamilyOptions
                 .setTableFormatConfig(new BlockBasedTableConfig()
