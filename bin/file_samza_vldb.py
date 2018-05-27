@@ -67,7 +67,7 @@ elif args.exp_mode == "rocksdb_nvme_lru":
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
         "--cache_option", "LRU",
-        "--cache_size", str(100000)
+        "--cache_size", str(1000)
     ]
 
 elif args.exp_mode == "rocksdb_nvme_wb":
@@ -76,7 +76,7 @@ elif args.exp_mode == "rocksdb_nvme_wb":
         "--rocksdb_path", "/nvme",
         "--block_cache_size", str(0),
         "--cache_option", "WriteBatch",
-        "--cache_size", str(100000),
+        "--cache_size", str(1000),
         "--batch_write_size", str(500)
     ]
 
@@ -86,7 +86,7 @@ elif args.exp_mode == "rocksdb_sata_lru":
         "--rocksdb_path", "/tmp",
         "--block_cache_size", str(0),
         "--cache_option", "LRU",
-        "--cache_size", str(100000)
+        "--cache_size", str(1000)
     ]
 
 elif args.exp_mode == "rocksdb_sata_wb":
@@ -95,8 +95,8 @@ elif args.exp_mode == "rocksdb_sata_wb":
         "--rocksdb_path", "/tmp",
         "--block_cache_size", str(0),
         "--cache_option", "WriteBatch",
-        "--cache_size", str(100000),
-        "--batch_write_size", str(50000)
+        "--cache_size", str(1000),
+        "--batch_write_size", str(500)
     ]
 
 elif args.exp_mode == "rocksdb_mem_cache":
