@@ -84,6 +84,8 @@ public class SamzaVLDBExp {
                 .setMaxMemCompactionLevel(8)
                 .setLevelZeroSlowdownWritesTrigger(40)
                 .setLevelZeroStopWritesTrigger(46)
+                .setMaxBytesForLevelBase(512 * 1024 * 1024)
+                .setMaxBytesForLevelMultiplier(10)
                 .setBloomLocality(1)
                 .setOptimizeFiltersForHits(false);
           } else {
