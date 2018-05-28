@@ -116,7 +116,8 @@ elif args.exp_mode == "file_sata":
 elif args.exp_mode == "file_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
-        "--state_store_path", "/nvme"
+        "--state_store_path", "/nvme",
+        "--batch_write_size", str(10000)
     ]
 
 print flink_command_line
