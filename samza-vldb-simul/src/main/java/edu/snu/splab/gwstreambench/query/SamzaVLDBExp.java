@@ -35,6 +35,7 @@ public class SamzaVLDBExp {
     final String cacheOption;
     final Integer cacheSize;
     final Integer batchWriteSize;
+    final Integer writeBufferSize;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -48,6 +49,7 @@ public class SamzaVLDBExp {
       System.out.println("Cache Option = " + cacheOption);
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
+      writeBufferSize = params.getInt("write_buffer_size", 0);
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -72,27 +74,20 @@ public class SamzaVLDBExp {
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
-          if (blockCacheSize == 0) {
-            return columnFamilyOptions
-                .setTableFormatConfig(new BlockBasedTableConfig()
-                    .setNoBlockCache(true)
+          return columnFamilyOptions
+              .setTableFormatConfig(new BlockBasedTableConfig()
+                    .setNoBlockCache(blockCacheSize == 0)
+                    .setBlockCacheSize(blockCacheSize * 1024 * 1024)
                     .setBlockSize(16 * 1024)
-                )
-                .setWriteBufferSize(16 * 1024 * 1024)
-                .setMaxWriteBufferNumber(16)
-                .setTargetFileSizeBase(128 * 1024 * 1024)
-                .setLevelZeroSlowdownWritesTrigger(40)
-                .setLevelZeroStopWritesTrigger(46)
-                .setBloomLocality(1)
-                .setOptimizeFiltersForHits(false);
-          } else {
-            return columnFamilyOptions
-                .setTableFormatConfig(new BlockBasedTableConfig()
-                    .setNoBlockCache(false)
-                    .setBlockSize(1024)
-                    .setBlockCacheSize(blockCacheSize * 1024 * 1024));
+              )
+              .setWriteBufferSize(writeBufferSize * 1024 * 1024)
+              .setMaxWriteBufferNumber(16)
+              .setTargetFileSizeBase(128 * 1024 * 1024)
+              .setLevelZeroSlowdownWritesTrigger(40)
+              .setLevelZeroStopWritesTrigger(46)
+              .setBloomLocality(1)
+              .setOptimizeFiltersForHits(false);
           }
-        }
       });
       env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {

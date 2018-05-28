@@ -58,7 +58,8 @@ elif args.exp_mode == "rocksdb_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(0)
+        "--block_cache_size", str(16),
+        "--write_buffer_size", str(16)
     ]
 
 elif args.exp_mode == "rocksdb_nvme_lru":
