@@ -93,7 +93,7 @@ public class SamzaVLDBExp {
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
     } else if (stateBackend.equals("file")) {
-      final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath);
+      final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath, batchWriteSize);
       env.setStateBackend(fileStateBackend);
     } else {
       throw new IllegalArgumentException("The state backend should be one of rocksdb / file / mem");

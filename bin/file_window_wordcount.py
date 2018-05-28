@@ -78,13 +78,15 @@ elif args.exp_mode == "rocksdb_nvme_wb":
 elif args.exp_mode == "file_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
-        "--state_store_path", "/home/gyewon/state_tmp"
+        "--state_store_path", "/home/gyewon/state_tmp",
+        "--batch_write_size", "10000"
     ]
 
 elif args.exp_mode == "file_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "file",
-        "--state_store_path", "/nvme"
+        "--state_store_path", "/nvme",
+        "--batch_write_size", "10000"
     ]
 
 print flink_command_line
