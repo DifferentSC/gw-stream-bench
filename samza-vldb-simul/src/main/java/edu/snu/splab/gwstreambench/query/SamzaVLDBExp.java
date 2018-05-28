@@ -15,6 +15,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
+import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 
 import java.util.Properties;
@@ -86,6 +87,7 @@ public class SamzaVLDBExp {
               .setLevelZeroSlowdownWritesTrigger(40)
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
+              .setCompressionType(CompressionType.NO_COMPRESSION)
               .setOptimizeFiltersForHits(false);
           }
       });
