@@ -17,6 +17,7 @@ import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
+import org.rocksdb.VectorMemTableConfig;
 
 import java.util.Properties;
 
@@ -82,6 +83,7 @@ public class SamzaVLDBExp {
                     .setBlockSize(16 * 1024)
               )
               .setWriteBufferSize(writeBufferSize * 1024 * 1024)
+              .setMemTableConfig(new VectorMemTableConfig())
               .setMaxWriteBufferNumber(16)
               .setTargetFileSizeBase(128 * 1024 * 1024)
               .setLevelZeroSlowdownWritesTrigger(40)
