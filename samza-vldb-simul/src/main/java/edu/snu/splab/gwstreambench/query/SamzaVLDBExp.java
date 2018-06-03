@@ -139,5 +139,6 @@ public class SamzaVLDBExp {
             data.getPercentile99()));
       }
     }
+    System.out.println("************ Done ************");
   }
 }
