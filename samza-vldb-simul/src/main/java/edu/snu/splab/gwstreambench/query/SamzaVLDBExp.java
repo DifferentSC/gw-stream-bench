@@ -70,6 +70,8 @@ public class SamzaVLDBExp {
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           statistics.setValue(new Statistics());
+          System.out.println("statistics = ");
+          System.out.println(statistics.getValue());
           return dbOptions
               .setBytesPerSync(1024 * 1024)
               .setStatistics(statistics.getValue());
@@ -128,6 +130,8 @@ public class SamzaVLDBExp {
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
     env.execute("Samza VLDB Simulation");
+    System.out.println("statistics = ");
+    System.out.println(statistics.getValue());
     if (statistics.getValue() != null) {
       System.out.println("************ Statistics ************");
       final Statistics stat = statistics.getValue();
