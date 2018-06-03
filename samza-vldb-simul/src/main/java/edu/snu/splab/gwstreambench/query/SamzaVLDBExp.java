@@ -70,7 +70,6 @@ public class SamzaVLDBExp {
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           statistics.setValue(new Statistics());
-          System.out.println("statistics = ");
           System.out.println(statistics.getValue());
           return dbOptions
               .setBytesPerSync(1024 * 1024)
@@ -130,19 +129,8 @@ public class SamzaVLDBExp {
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
     env.execute("Samza VLDB Simulation");
-    System.out.println("statistics = ");
+    System.out.println("Begin statistics");
     System.out.println(statistics.getValue());
-    if (statistics.getValue() != null) {
-      System.out.println("************ Statistics ************");
-      final Statistics stat = statistics.getValue();
-      System.out.println(stat.toString());
-      for (final HistogramType histogramType : HistogramType.values()) {
-        final HistogramData data = stat.getHistogramData(histogramType);
-        System.out.println(String.format("%s/ avg %d/ stdev %d/ median %d/ 95th %d/ 99th %d", histogramType,
-            data.getAverage(), data.getStandardDeviation(), data.getMedian(), data.getPercentile95(),
-            data.getPercentile99()));
-      }
-    }
-    System.out.println("************ Done ************");
+    System.out.println("End statistics");
   }
 }
