@@ -1,6 +1,7 @@
 
 package edu.snu.splab.gwstreambench.query;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -34,6 +35,7 @@ public class SamzaVLDBExp {
     final Integer cacheSize;
     final Integer batchWriteSize;
     final Integer writeBufferSize;
+    final MutableObject<Statistics> statistics = new MutableObject<>();
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -67,9 +69,10 @@ public class SamzaVLDBExp {
         @Override
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
+          statistics.setValue(new Statistics());
           return dbOptions
               .setBytesPerSync(1024 * 1024)
-              .setStatistics(new Statistics());
+              .setStatistics(statistics.getValue());
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
@@ -125,5 +128,6 @@ public class SamzaVLDBExp {
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
     env.execute("Samza VLDB Simulation");
+    System.out.println("************ FINISHED "************");
   }
 }
