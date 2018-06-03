@@ -68,7 +68,7 @@
         <dependency>
             <groupId>org.rocksdb</groupId>
             <artifactId>rocksdbjni</artifactId>
-            <version>4.11.2</version>
+            <version>5.7.5</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
