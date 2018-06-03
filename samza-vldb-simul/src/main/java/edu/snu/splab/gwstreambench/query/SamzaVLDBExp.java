@@ -84,7 +84,7 @@ public class SamzaVLDBExp {
                     .setBlockSize(16 * 1024)
               )
               .setWriteBufferSize(writeBufferSize * 1024 * 1024)
-              .setMemTableConfig(new VectorMemTableConfig())
+              .setMemTableConfig(new SkipListMemTableConfig())
               .setMaxWriteBufferNumber(16)
               .setTargetFileSizeBase(128 * 1024 * 1024)
               .setLevelZeroSlowdownWritesTrigger(40)
