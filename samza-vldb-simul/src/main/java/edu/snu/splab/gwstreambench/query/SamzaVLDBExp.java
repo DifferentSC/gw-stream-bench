@@ -13,11 +13,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
-import org.rocksdb.BlockBasedTableConfig;
-import org.rocksdb.ColumnFamilyOptions;
-import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
-import org.rocksdb.VectorMemTableConfig;
+import org.rocksdb.*;
 
 import java.util.Properties;
 
@@ -67,13 +63,13 @@ public class SamzaVLDBExp {
       rocksDBStateBackend.setCacheOption(cacheOption);
       rocksDBStateBackend.setCacheSize(cacheSize);
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
+      rocksDBStateBackend.setEnableStatistics(true);
       rocksDBStateBackend.setOptions(new OptionsFactory() {
         @Override
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           return dbOptions
-              .setBytesPerSync(1024 * 1024)
-              .createStatistics();
+              .setBytesPerSync(1024 * 1024);
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
