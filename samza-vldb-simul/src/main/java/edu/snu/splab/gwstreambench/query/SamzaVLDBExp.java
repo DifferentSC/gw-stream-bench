@@ -34,6 +34,7 @@ public class SamzaVLDBExp {
     final Integer cacheSize;
     final Integer batchWriteSize;
     final Integer writeBufferSize;
+    final Statistics statistics;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -53,8 +54,6 @@ public class SamzaVLDBExp {
       return;
     }
 
-    final Statistics statistics = new Statistics();
-
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     // Set the state backend.
@@ -65,6 +64,7 @@ public class SamzaVLDBExp {
       rocksDBStateBackend.setCacheOption(cacheOption);
       rocksDBStateBackend.setCacheSize(cacheSize);
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
+      statistics = new Statistics();
       rocksDBStateBackend.setOptions(new OptionsFactory() {
         @Override
         public DBOptions createDBOptions(DBOptions dbOptions)
