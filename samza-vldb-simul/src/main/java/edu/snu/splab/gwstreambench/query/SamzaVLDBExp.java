@@ -128,6 +128,6 @@ public class SamzaVLDBExp {
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
     env.execute("Samza VLDB Simulation");
-    System.out.println("************ FINISHED "************");
+    System.out.println("************ FINISHED ************");
   }
 }
