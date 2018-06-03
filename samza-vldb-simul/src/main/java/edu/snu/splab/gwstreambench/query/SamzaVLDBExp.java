@@ -72,7 +72,8 @@ public class SamzaVLDBExp {
         public DBOptions createDBOptions(DBOptions dbOptions)
         {
           return dbOptions
-              .setBytesPerSync(1024 * 1024);
+              .setBytesPerSync(1024 * 1024)
+              .createStatistics();
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
