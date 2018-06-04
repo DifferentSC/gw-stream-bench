@@ -63,7 +63,7 @@ public class SamzaVLDBExp {
       rocksDBStateBackend.setCacheOption(cacheOption);
       rocksDBStateBackend.setCacheSize(cacheSize);
       rocksDBStateBackend.setBatchWriteSize(batchWriteSize);
-      rocksDBStateBackend.setEnableStatistics(true);
+      //rocksDBStateBackend.setEnableStatistics(true);
       rocksDBStateBackend.setOptions(new OptionsFactory() {
         @Override
         public DBOptions createDBOptions(DBOptions dbOptions)
