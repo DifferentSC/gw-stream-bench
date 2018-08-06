@@ -16,7 +16,7 @@ args = parser.parse_args()
 # Create the datafile
 make_file_command_line = [
     "java", "-cp",
-    "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
+    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
     "FileSamzaExpDataGen",
     "-f", args.text_file_path,
     "-n", str(args.tuple_num),
