@@ -67,8 +67,9 @@ public class FileSamzaExpDataGen {
 
     final Random random = new Random();
     final Path filePath = Paths.get(filePathString);
-    final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
-    final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE);
+    //final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
+    final BufferedWriter bufferedWriter = Files.newBufferedWriter(filePath, StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 
     final List<String> marginList = new ArrayList<>();
     for (int i = 0; i < 1000; i ++) {
@@ -78,6 +79,7 @@ public class FileSamzaExpDataGen {
       }
       marginList.add(new String(marginBytes));
     }
+    System.out.println("Finished generating random margin bytes...");
 
     for (int i = 0; i < tupleNum; i++) {
       final String marginString = marginList.get(random.nextInt(1000));
