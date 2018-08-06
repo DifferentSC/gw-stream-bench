@@ -34,6 +34,7 @@ public class SamzaVLDBExp {
     final Integer cacheSize;
     final Integer batchWriteSize;
     final Integer writeBufferSize;
+    final Integer fileNum;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -48,6 +49,7 @@ public class SamzaVLDBExp {
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
       writeBufferSize = params.getInt("write_buffer_size", 0);
+      fileNum = params.getInt("file_num", 2000);
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -94,7 +96,7 @@ public class SamzaVLDBExp {
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new MemoryStateBackend());
     } else if (stateBackend.equals("file")) {
-      final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath, batchWriteSize);
+      final FileStateBackend fileStateBackend = new FileStateBackend(stateStorePath, batchWriteSize, fileNum);
       env.setStateBackend(fileStateBackend);
     } else {
       throw new IllegalArgumentException("The state backend should be one of rocksdb / file / mem");
