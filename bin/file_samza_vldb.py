@@ -17,7 +17,7 @@ args = parser.parse_args()
 make_file_command_line = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
-    "FileSamzaExpDataGen",
+    "edu.snu.splab.gwstreambench.source.FileSamzaExpDataGen",
     "-f", args.text_file_path,
     "-n", str(args.tuple_num),
     "-k", str(args.key_num),
