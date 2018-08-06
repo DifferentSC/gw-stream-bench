@@ -16,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The file generator for samza experiment.
@@ -59,8 +60,8 @@ public class FileSamzaExpDataGen {
     }
 
     final String filePathString = cmd.getOptionValue("f");
-    final int tupleNum = Integer.valueOf(cmd.getOptionValue("n"));
-    final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
+    final long tupleNum = Long.valueOf(cmd.getOptionValue("n"));
+    final long numKeys = Long.valueOf(cmd.getOptionValue("k"));
     final double skewness = Double.valueOf(cmd.getOptionValue("s"));
     final int margin = Integer.valueOf(cmd.getOptionValue("m"));
 
@@ -80,7 +81,7 @@ public class FileSamzaExpDataGen {
 
     for (int i = 0; i < tupleNum; i++) {
       final String marginString = marginList.get(random.nextInt(1000));
-      int key = random.nextInt(numKeys);
+      long key = ThreadLocalRandom.current().nextLong(numKeys);
       bufferedWriter.write(key + " " + marginString + "\n");
     }
     bufferedWriter.flush();

@@ -16,16 +16,16 @@ public class ZipfWordGenerator {
 
   private Random random;
 
-  public ZipfWordGenerator(int numKeys, double alpha) {
+  public ZipfWordGenerator(long numKeys, double alpha) {
     this.wordList = new ArrayList<String>();
     this.zipfProbList = new ArrayList<Double>();
     double sumProb = 0.;
-    for (int i = 1; i <= numKeys; i++) {
+    for (long i = 1; i <= numKeys; i++) {
       sumProb += Math.pow(1./(double)i, alpha);
     }
     final double mostPopularProb = 1. / sumProb;
 
-    for (int i = 1; i <= numKeys; i++) {
+    for (long i = 1; i <= numKeys; i++) {
       wordList.add(String.valueOf(i));
       // Add the normalized probability.
       zipfProbList.add(mostPopularProb * Math.pow(1./(double)i, alpha));
