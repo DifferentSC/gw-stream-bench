@@ -13,7 +13,7 @@ args = parser.parse_args()
 # Fill the window firstly...
 fill_window_command_line = [
     "java", "-cp",
-    "./target/gw-stream-bench-1.0-SNAPSHOT-shaded.jar",
+    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
     "KafkaFixNumTupleGenSource",
     "-b", args.broker_address,
     "-n", str(args.window_size),
