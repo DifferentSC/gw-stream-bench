@@ -85,6 +85,7 @@ public class SamzaVLDBExp {
               .setMemTableConfig(new HashSkipListMemTableConfig())
               .setMaxWriteBufferNumber(16)
               .setTargetFileSizeBase(128 * 1024 * 1024)
+              .optimizeForPointLookup(writeBufferSize * 1024 * 1024)
               .setLevelZeroSlowdownWritesTrigger(40)
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
