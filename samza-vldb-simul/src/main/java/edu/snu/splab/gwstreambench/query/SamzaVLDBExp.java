@@ -81,6 +81,7 @@ public class SamzaVLDBExp {
                     .setBlockCacheSize(blockCacheSize * 1024 * 1024)
                     .setBlockSize(16 * 1024)
               )
+              /*
               .setWriteBufferSize(writeBufferSize * 1024 * 1024)
               .setMemTableConfig(new HashSkipListMemTableConfig())
               .setMaxWriteBufferNumber(16)
@@ -89,7 +90,8 @@ public class SamzaVLDBExp {
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
               .setCompressionType(CompressionType.NO_COMPRESSION)
-              .setOptimizeFiltersForHits(false);
+              .setOptimizeFiltersForHits(false)*/
+              .optimizeForPointLookup(writeBufferSize * 1024 * 1024);
           }
       });
       env.setStateBackend(rocksDBStateBackend);
