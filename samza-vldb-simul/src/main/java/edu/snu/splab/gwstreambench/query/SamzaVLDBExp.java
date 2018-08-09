@@ -89,7 +89,8 @@ public class SamzaVLDBExp {
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
               .setCompressionType(CompressionType.NO_COMPRESSION)
-              .setTableFormatConfig(new PlainTableConfig())
+              .setTableFormatConfig(new PlainTableConfig()
+                .setEncodingType(EncodingType.kPlain))
               .setOptimizeFiltersForHits(false);
               //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
           }
