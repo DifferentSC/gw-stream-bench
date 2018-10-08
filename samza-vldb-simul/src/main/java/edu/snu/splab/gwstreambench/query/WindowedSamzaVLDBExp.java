@@ -24,7 +24,7 @@ import java.util.Properties;
 /**
  * This is a simulation of samza experiments on VLDB.
  */
-public class SamzaVLDBExp {
+public class WindowedSamzaVLDBExp {
 
   public static final void main(final String[] args) throws Exception {
     final String brokerAddress;
@@ -39,6 +39,8 @@ public class SamzaVLDBExp {
     final Integer batchWriteSize;
     final Integer writeBufferSize;
     final Integer fileNum;
+    final Integer windowSize;
+    final Integer windowInterval;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -53,7 +55,9 @@ public class SamzaVLDBExp {
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
       writeBufferSize = params.getInt("write_buffer_size", 0);
-      fileNum = params.getInt("file_num", 2000);
+      fileNum = params.getInt("file_num", 1);
+      windowSize = params.getInt("window_size");
+      windowInterval = params.getInt("window_interval");
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -78,9 +82,9 @@ public class SamzaVLDBExp {
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
           return columnFamilyOptions
               .setTableFormatConfig(new BlockBasedTableConfig()
-                    .setNoBlockCache(blockCacheSize == 0)
-                    .setBlockCacheSize(blockCacheSize * 1024 * 1024)
-                    .setBlockSize(16 * 1024)
+                  .setNoBlockCache(blockCacheSize == 0)
+                  .setBlockCacheSize(blockCacheSize * 1024 * 1024)
+                  .setBlockSize(16 * 1024)
               )
               .setWriteBufferSize(writeBufferSize * 1024 * 1024)
               .setMemTableConfig(new SkipListMemTableConfig())
@@ -93,8 +97,8 @@ public class SamzaVLDBExp {
               .setTableFormatConfig(new PlainTableConfig())
               .useFixedLengthPrefixExtractor(16)
               .setOptimizeFiltersForHits(false);
-              //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
-          }
+          //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
+        }
       });
       env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
@@ -123,9 +127,10 @@ public class SamzaVLDBExp {
           }
         })
         .keyBy(0)
-        .map(new StatefulCounter())
-        .filter(x -> x.f0.equals("1"))
-        .map(x -> x.toString())
+        .countWindow(windowSize, windowInterval)
+        .aggregate(new CountAggregate())
+        .filter(x -> x.f0 == 1)
+        .map(Tuple2::toString)
         .returns(String.class);
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
