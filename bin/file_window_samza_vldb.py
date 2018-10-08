@@ -36,7 +36,7 @@ else:
 flink_command_line = None
 flink_common_command_line = [
     "flink", "run",
-    "./samza-vldb-simul/target/samza-vldb-simul-1.0-SNAPSHOT-shaded.jar",
+    "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
     "--text_file_path", str(args.text_file_path),

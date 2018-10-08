@@ -11,6 +11,7 @@
     <modules>
         <module>samza-vldb-simul</module>
         <module>source-sink</module>
+        <module>window-samza-vldb</module>
     </modules>
 
     <properties>
