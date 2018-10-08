@@ -16,7 +16,7 @@
 
     <properties>
         <project.build.directory>target</project.build.directory>
-        <flink.version>1.6.1</flink.version>
+        <flink.version>1.6-SNAPSHOT</flink.version>
         <kafka.version>0.11.0.2</kafka.version>
     </properties>
 
