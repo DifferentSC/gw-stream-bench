@@ -7,7 +7,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
-import org.apache.flink.runtime.state.memory.MemoryStateBackend;
+import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
@@ -98,7 +98,7 @@ public class SamzaVLDBExp {
       });
       env.setStateBackend(rocksDBStateBackend);
     } else if (stateBackend.equals("mem")) {
-      env.setStateBackend(new MemoryStateBackend());
+      env.setStateBackend(new FsStateBackend("file:///tmp"));
     } else if (stateBackend.equals("streamix")) {
       throw new UnsupportedOperationException("Currently streamix statebackend is not supported!");
     } else {
