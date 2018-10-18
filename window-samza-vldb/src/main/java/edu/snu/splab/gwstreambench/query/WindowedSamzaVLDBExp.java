@@ -7,6 +7,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
+import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -41,6 +42,7 @@ public class WindowedSamzaVLDBExp {
     final Integer fileNum;
     final Integer windowSize;
     final Integer windowInterval;
+    final Boolean isListState;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -58,6 +60,7 @@ public class WindowedSamzaVLDBExp {
       fileNum = params.getInt("file_num", 1);
       windowSize = params.getInt("window_size");
       windowInterval = params.getInt("window_interval");
+      isListState = params.getBoolean("is_list_state", false);
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -104,7 +107,11 @@ public class WindowedSamzaVLDBExp {
     } else if (stateBackend.equals("mem")) {
       env.setStateBackend(new FsStateBackend("file:///tmp"));
     } else if (stateBackend.equals("streamix")) {
-      throw new UnsupportedOperationException("Currently streamix statebackend is not supported!");
+      env.setStateBackend(new StreamixStateBackend(
+          stateStorePath,
+          writeBufferSize,
+          fileNum
+      ));
     } else {
       throw new IllegalArgumentException("The state backend should be one of rocksdb / file / mem");
     }
@@ -117,23 +124,40 @@ public class WindowedSamzaVLDBExp {
     DataStream<String> text = env.readTextFile(textFilePath);
 
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
-
-    // parse the data, group it, window it, and aggregate the counts
-    DataStream<String> count = text
-        .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
-          public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
-            String[] splitLine = value.split("\\s");
-            out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
-          }
-        })
-        .keyBy(0)
-        .countWindow(windowSize, windowInterval)
-        .aggregate(new CountAggregate())
-        .filter(x -> x.f0 == 1)
-        .map(Tuple2::toString)
-        .returns(String.class);
+    DataStream<String> count = null;
+    if (isListState) {
+      // parse the data, group it, window it, and aggregate the counts
+      count = text
+          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
+            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
+              String[] splitLine = value.split("\\s");
+              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
+            }
+          })
+          .keyBy(0)
+          .countWindow(windowSize, windowInterval)
+          .aggregate(new CountAggregate())
+          .filter(x -> x.f0 == 1)
+          .map(Tuple2::toString)
+          .returns(String.class);
+    } else {
+      // parse the data, group it, window it, and aggregate the counts
+      count = text
+          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
+            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
+              String[] splitLine = value.split("\\s");
+              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
+            }
+          })
+          .keyBy(0)
+          .countWindow(windowSize, windowInterval)
+          .process(new CountProcess())
+          .filter(x -> x.f0 == 1)
+          .map(x -> x.toString())
+          .returns(String.class);
+    }
 
     count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
-    env.execute("Samza VLDB Simulation");
+    env.execute("Samza VLDB Window Simulation");
   }
 }
