@@ -113,7 +113,7 @@ public class WindowedSamzaVLDBExp {
           fileNum
       ));
     } else {
-      throw new IllegalArgumentException("The state backend should be one of rocksdb / file / mem");
+      throw new IllegalArgumentException("The state backend should be one of rocksdb / streamix / mem");
     }
 
     final Properties properties = new Properties();

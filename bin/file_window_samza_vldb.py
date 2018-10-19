@@ -113,14 +113,14 @@ elif args.exp_mode == "rocksdb_mem_cache":
 
 elif args.exp_mode == "streamix_sata":
     flink_command_line = flink_common_command_line + [
-        "--state_backend", "file",
+        "--state_backend", "streamix",
         "--state_store_path", "/home/gyewon/state_tmp",
         "--batch_write_size", str(10000)
     ]
 
 elif args.exp_mode == "streamix_nvme":
     flink_command_line = flink_common_command_line + [
-        "--state_backend", "file",
+        "--state_backend", "streamix",
         "--state_store_path", "/nvme",
         "--batch_write_size", str(10000)
     ]
