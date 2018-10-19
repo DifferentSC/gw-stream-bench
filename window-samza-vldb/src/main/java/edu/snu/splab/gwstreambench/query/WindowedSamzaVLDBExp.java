@@ -2,7 +2,6 @@
 package edu.snu.splab.gwstreambench.query;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
@@ -11,7 +10,6 @@ import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
@@ -159,7 +157,8 @@ public class WindowedSamzaVLDBExp {
           .returns(String.class);
     }
 
-    count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
+    //count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
+    count.writeAsText("file:///home/stream/result.txt");
     env.execute("Samza VLDB Window Simulation");
   }
 }
