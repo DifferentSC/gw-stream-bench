@@ -125,7 +125,7 @@ public class WindowedSamzaVLDBExp {
 
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     DataStream<String> count = null;
-    if (isListState) {
+    if (!isListState) {
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
