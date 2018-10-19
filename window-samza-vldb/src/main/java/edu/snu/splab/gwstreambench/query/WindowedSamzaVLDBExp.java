@@ -126,6 +126,7 @@ public class WindowedSamzaVLDBExp {
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     DataStream<String> count = null;
     if (!isListState) {
+      System.out.println("Operation type: Associative aggregation");
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
@@ -141,6 +142,7 @@ public class WindowedSamzaVLDBExp {
           .map(Tuple2::toString)
           .returns(String.class);
     } else {
+      System.out.println("Operation type: Non-associative aggregation");
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
