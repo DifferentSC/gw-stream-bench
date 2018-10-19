@@ -136,7 +136,7 @@ public class WindowedSamzaVLDBExp {
             }
           })
           .keyBy(0)
-          .countWindow(windowSize, windowInterval)
+          .countWindow(windowSize)
           .aggregate(new CountAggregate())
           .filter(x -> x.f0 == 1)
           .map(Tuple2::toString)
