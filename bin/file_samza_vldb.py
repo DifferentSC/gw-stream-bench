@@ -10,7 +10,7 @@ parser.add_argument("tuple_num", type=int)
 parser.add_argument("key_num", type=int)
 parser.add_argument("skewness", type=float)
 parser.add_argument("margin", type=int)
-parser.add_argument("is_list_state", type=boolean)
+parser.add_argument("is_list_state", type=bool)
 
 args = parser.parse_args()
 
