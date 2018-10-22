@@ -150,7 +150,7 @@ public class WindowedSamzaVLDBExp {
             }
           })
           .keyBy(0)
-          .countWindow(windowSize, windowInterval)
+          .countWindow(windowSize)
           .process(new CountProcess())
           .filter(x -> x.f0 == 1)
           .map(x -> x.toString())
