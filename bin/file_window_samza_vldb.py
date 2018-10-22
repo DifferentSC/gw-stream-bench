@@ -41,7 +41,7 @@ flink_common_command_line = [
     "--zookeeper_address", "localhost:2181",
     "--text_file_path", str(args.text_file_path),
     "--window_size", str(args.window_size),
-    "--window_interval", str(args.window_interval),
+    "--window_interval", str(args.window_size),
     "--is_list_state", args.is_list_state
 ]
 
