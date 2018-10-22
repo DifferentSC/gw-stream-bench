@@ -10,7 +10,7 @@ parser.add_argument("tuple_num", type=int)
 parser.add_argument("key_num", type=int)
 parser.add_argument("skewness", type=float)
 parser.add_argument("margin", type=int)
-parser.add_argument("is_list_state", type=bool)
+parser.add_argument("is_list_state")
 
 args = parser.parse_args()
 
@@ -39,7 +39,7 @@ flink_common_command_line = [
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
     "--text_file_path", str(args.text_file_path),
-    "--is_list_state", str(args.is_list_state)
+    "--is_list_state", args.is_list_state
 ]
 
 state_backend_command_line = []
