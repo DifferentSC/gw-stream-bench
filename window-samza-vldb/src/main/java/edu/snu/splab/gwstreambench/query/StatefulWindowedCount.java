@@ -41,6 +41,7 @@ public class StatefulWindowedCount extends RichMapFunction<Tuple2<Integer, Strin
             new CountWindowAggregate(windowSize),
             TypeInformation.of(new TypeHint<Tuple3<Integer, Integer, String>>() {})
         );
+    state = getRuntimeContext().getAggregatingState(descriptor);
   }
 
   private class CountWindowAggregate implements AggregateFunction<
