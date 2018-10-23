@@ -10,8 +10,6 @@ parser.add_argument("tuple_num", type=int)
 parser.add_argument("key_num", type=int)
 parser.add_argument("skewness", type=float)
 parser.add_argument("margin", type=int)
-parser.add_argument("is_list_state")
-
 args = parser.parse_args()
 
 # Create the datafile
@@ -38,8 +36,7 @@ flink_common_command_line = [
     "./samza-vldb-simul/target/samza-vldb-simul-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", "localhost:9092",
     "--zookeeper_address", "localhost:2181",
-    "--text_file_path", str(args.text_file_path),
-    "--is_list_state", args.is_list_state
+    "--text_file_path", str(args.text_file_path)
 ]
 
 state_backend_command_line = []
@@ -60,59 +57,14 @@ elif args.exp_mode == "rocksdb_nvme":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
         "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(16),
+        "--block_cache_size", str(1024),
         "--write_buffer_size", str(16)
-    ]
-
-elif args.exp_mode == "rocksdb_nvme_lru":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(0),
-        "--cache_option", "LRU",
-        "--cache_size", str(1000)
-    ]
-
-elif args.exp_mode == "rocksdb_nvme_wb":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(0),
-        "--cache_option", "WriteBatch",
-        "--cache_size", str(1000),
-        "--batch_write_size", str(10)
-    ]
-
-elif args.exp_mode == "rocksdb_sata_lru":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
-        "--block_cache_size", str(0),
-        "--cache_option", "LRU",
-        "--cache_size", str(1000)
-    ]
-
-elif args.exp_mode == "rocksdb_sata_wb":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
-        "--block_cache_size", str(0),
-        "--cache_option", "WriteBatch",
-        "--cache_size", str(1000),
-        "--batch_write_size", str(500)
-    ]
-
-elif args.exp_mode == "rocksdb_mem_cache":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(2048)
     ]
 
 elif args.exp_mode == "streamix_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "streamix",
-        "--state_store_path", "/home/gyewon/state_tmp"
+        "--state_store_path", "/tmp"
     ]
 
 elif args.exp_mode == "streamix_nvme":

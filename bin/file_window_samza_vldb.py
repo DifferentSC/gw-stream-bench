@@ -76,42 +76,6 @@ elif args.exp_mode == "rocksdb_nvme_lru":
         "--cache_size", str(1000)
     ]
 
-elif args.exp_mode == "rocksdb_nvme_wb":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(0),
-        "--cache_option", "WriteBatch",
-        "--cache_size", str(1000),
-        "--batch_write_size", str(10)
-    ]
-
-elif args.exp_mode == "rocksdb_sata_lru":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
-        "--block_cache_size", str(0),
-        "--cache_option", "LRU",
-        "--cache_size", str(1000)
-    ]
-
-elif args.exp_mode == "rocksdb_sata_wb":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
-        "--block_cache_size", str(0),
-        "--cache_option", "WriteBatch",
-        "--cache_size", str(1000),
-        "--batch_write_size", str(500)
-    ]
-
-elif args.exp_mode == "rocksdb_mem_cache":
-    flink_command_line = flink_common_command_line + [
-        "--state_backend", "rocksdb",
-        "--rocksdb_path", "/nvme",
-        "--block_cache_size", str(2048)
-    ]
-
 elif args.exp_mode == "streamix_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "streamix",
