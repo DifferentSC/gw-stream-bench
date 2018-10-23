@@ -11,7 +11,7 @@ parser.add_argument("key_num", type=int)
 parser.add_argument("skewness", type=float)
 parser.add_argument("margin", type=int)
 parser.add_argument("window_size", type=int)
-parser.add_argument("is_list_state")
+parser.add_argument("query_type")
 
 args = parser.parse_args()
 
@@ -42,7 +42,7 @@ flink_common_command_line = [
     "--text_file_path", str(args.text_file_path),
     "--window_size", str(args.window_size),
     "--window_interval", str(args.window_size),
-    "--is_list_state", args.is_list_state
+    "--query_type", args.query_type
 ]
 
 state_backend_command_line = []
