@@ -90,7 +90,7 @@ public class SamzaVLDBExp {
               .setBloomLocality(1)
               .setCompressionType(CompressionType.NO_COMPRESSION)
               .setTableFormatConfig(new BlockBasedTableConfig())
-              .useFixedLengthPrefixExtractor(16)
+              //.useFixedLengthPrefixExtractor(16)
               .setOptimizeFiltersForHits(false);
               //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
           }
