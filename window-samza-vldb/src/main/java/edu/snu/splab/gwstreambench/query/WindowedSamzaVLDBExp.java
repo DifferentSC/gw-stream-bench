@@ -40,7 +40,7 @@ public class WindowedSamzaVLDBExp {
     final Integer fileNum;
     final Integer windowSize;
     final Integer windowInterval;
-    final Boolean isListState;
+    final String queryType;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address");
@@ -58,7 +58,7 @@ public class WindowedSamzaVLDBExp {
       fileNum = params.getInt("file_num", 1);
       windowSize = params.getInt("window_size");
       windowInterval = params.getInt("window_interval");
-      isListState = params.getBoolean("is_list_state", false);
+      queryType = params.get("query_type");
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -123,7 +123,7 @@ public class WindowedSamzaVLDBExp {
 
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     DataStream<String> count = null;
-    if (!isListState) {
+    if (queryType.equals("associative-count")) {
       System.out.println("Operation type: Associative aggregation");
       // parse the data, group it, window it, and aggregate the counts
       count = text
@@ -139,7 +139,7 @@ public class WindowedSamzaVLDBExp {
           .filter(x -> x.f0 == 1)
           .map(Tuple2::toString)
           .returns(String.class);
-    } else {
+    } else if (queryType.equals("non-associative-count")) {
       System.out.println("Operation type: Non-associative aggregation");
       // parse the data, group it, window it, and aggregate the counts
       count = text
@@ -152,6 +152,19 @@ public class WindowedSamzaVLDBExp {
           .keyBy(0)
           .countWindow(windowSize)
           .process(new CountProcess())
+          .filter(x -> x.f0 == 1)
+          .map(x -> x.toString())
+          .returns(String.class);
+    } else if (queryType.equals("associative-count-memory")) {
+      count = text
+          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
+            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
+              String[] splitLine = value.split("\\s");
+              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
+            }
+          })
+          .keyBy(0)
+          .map(new StatefulWindowedCount(windowSize))
           .filter(x -> x.f0 == 1)
           .map(x -> x.toString())
           .returns(String.class);
