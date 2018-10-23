@@ -106,7 +106,7 @@ public class WindowedSamzaVLDBExp {
     } else if (stateBackend.equals("streamix")) {
       env.setStateBackend(new StreamixStateBackend(
           stateStorePath,
-          writeBufferSize,
+          batchWriteSize,
           fileNum
       ));
     } else {
