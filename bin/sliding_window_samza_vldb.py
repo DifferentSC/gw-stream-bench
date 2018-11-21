@@ -97,11 +97,14 @@ try:
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
+        print("Start source process...")
         # Start the source process
         source_process = subprocess.Popen(source_command_line)
         # Wait for the designated time
+        print("Waiting for %d secs..." % time_wait)
         time.sleep(time_wait)
         # Start the sink process
+        print("Measure latency for %d secs..." % time_running)
         sink_process = subprocess.call(sink_command_line)
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
