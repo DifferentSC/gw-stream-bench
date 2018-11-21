@@ -63,7 +63,7 @@ elif state_backend == "streamix":
         "--batch_write_size", configs['streamix.batch_write_size']
     ]
 
-print("Submit the query th flink")
+print("Submit the query the flink")
 # Submit the query to flink
 submit_query = subprocess.Popen(flink_command_line)
 time.sleep(5)
@@ -74,7 +74,7 @@ success = True
 source_command_line_prefix = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.KafkaWordGeneratingSource",
+    "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
     "-b", kafka_address,
     "-k", str(key_num),
     "-s", str(key_skewness),
@@ -85,7 +85,7 @@ source_command_line_prefix = [
 sink_command_line = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.KafkaLatencyMeasure",
+    "edu.snu.splab.gwstreambench.sink.KafkaLatencyMeasure",
     "-b", kafka_address,
     "-t", time_running,
     "-d", deadline_latency
