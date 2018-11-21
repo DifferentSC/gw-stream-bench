@@ -63,8 +63,10 @@ elif state_backend == "streamix":
         "--batch_write_size", configs['streamix.batch_write_size']
     ]
 
+print("Submit the query th flink")
 # Submit the query to flink
-submit_query = subprocess.call(flink_command_line)
+submit_query = subprocess.Popen(flink_command_line)
+time.sleep(5)
 
 current_event_rate = rate_init - rate_increase
 success = True
