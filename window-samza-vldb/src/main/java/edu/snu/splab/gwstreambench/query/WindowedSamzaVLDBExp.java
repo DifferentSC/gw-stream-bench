@@ -2,7 +2,9 @@
 package edu.snu.splab.gwstreambench.query;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
@@ -10,6 +12,10 @@ import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
@@ -118,12 +124,14 @@ public class WindowedSamzaVLDBExp {
     properties.setProperty("zookeeper.connect", zookeeperAddress);
 
     // get input data by connecting to the kafka server
-    DataStream<String> text = env.readTextFile(textFilePath);
+    DataStream<String> text = env.addSource(
+        new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
+    );
 
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     DataStream<String> count = null;
-    if (queryType.equals("associative-count")) {
-      System.out.println("Operation type: Associative aggregation");
+    if (queryType.equals("aggregate-count")) {
+      System.out.println("Query type: Window with aggregate state");
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
@@ -138,39 +146,27 @@ public class WindowedSamzaVLDBExp {
           .filter(x -> x.f0 == 1)
           .map(Tuple2::toString)
           .returns(String.class);
-    } else if (queryType.equals("non-associative-count")) {
-      System.out.println("Operation type: Non-associative aggregation");
+    } else if (queryType.equals("list-sliding-window")) {
+      System.out.println("State type: List");
       // parse the data, group it, window it, and aggregate the counts
       count = text
-          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
-            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
+          .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
+            public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
               String[] splitLine = value.split("\\s");
-              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
+              out.collect(new Tuple3<>(Integer.valueOf(splitLine[0]), splitLine[1],
+                  Long.valueOf(splitLine[2])));
             }
           })
           .keyBy(0)
-          .countWindow(windowSize)
-          .process(new CountProcess())
-          .filter(x -> x.f0 == 1)
-          .map(x -> x.toString())
-          .returns(String.class);
-    } else if (queryType.equals("associative-count-memory")) {
-      count = text
-          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
-            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
-              String[] splitLine = value.split("\\s");
-              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
-            }
-          })
-          .keyBy(0)
-          .map(new StatefulWindowedCount(windowSize))
-          .filter(x -> x.f0 == 1)
-          .map(x -> x.toString())
+          .window(SlidingProcessingTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
+          .process(new CountProcessWithLatency())
+          // Leave only the latencies
+          .map(x -> String.valueOf(x.f3))
           .returns(String.class);
     }
 
-    //count.addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
-    count.writeAsText("file:///home/stream/result.txt");
-    env.execute("Samza VLDB Window Simulation");
+    count.addSink(new FlinkKafkaProducer011<>(
+        "result", new SimpleStringSchema(), properties));
+    env.execute("Samza VLDB Window Experiment");
   }
 }

@@ -4,7 +4,10 @@ import org.apache.commons.cli.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Timer;
 
 /**
@@ -23,6 +26,10 @@ public class KafkaWordGeneratingSource {
     final Option eventRatePerSecondOption = new Option("r", true,"The event generation rate per second");
     eventRatePerSecondOption.setRequired(true);
     options.addOption(eventRatePerSecondOption);
+
+    final Option marginOption = new Option("m", true, "The size of margin bytes");
+    marginOption.setRequired(true);
+    options.addOption(marginOption);
 
     final Option numThreadsOption = new Option("t", true,"The number of timer threads used for source generation");
     numThreadsOption.setRequired(true);
@@ -53,9 +60,19 @@ public class KafkaWordGeneratingSource {
     final int eventRatePerSecond = Integer.valueOf(cmd.getOptionValue("r"));
     final int numThreads = Integer.valueOf(cmd.getOptionValue("t"));
     final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
+    final int marginSize = Integer.valueOf(cmd.getOptionValue("m"));
     final double skewness = Double.valueOf(cmd.getOptionValue("s"));
 
-    // Instantiate
+    final Random random = new Random();
+    final List<String> marginList = new ArrayList<>();
+    for (int i = 0; i < 10000; i ++) {
+      final byte[] marginBytes = new byte[marginSize];
+      for (int j = 0; j < marginSize; j++) {
+        marginBytes[j] = (byte) (random.nextInt(26) + 'a');
+      }
+      marginList.add(new String(marginBytes));
+    }
+
     final Properties props = new Properties();
     props.put("bootstrap.servers", kafkaBrokerAddress);
     props.put("acks", "all");
@@ -72,7 +89,12 @@ public class KafkaWordGeneratingSource {
     for (int i = 0; i < numThreads; i++) {
       final Timer timer = new Timer();
       timer.scheduleAtFixedRate(
-          new WordPublishRunner(kafkaProducer, wordGenerator, "word", eventRatePerSecond / numThreads),
+          new WordPublishRunner(
+              kafkaProducer,
+              wordGenerator,
+              "word",
+              eventRatePerSecond / numThreads,
+              marginList),
           1000, 1000);
     }
     // Wait for 24 hrs.
