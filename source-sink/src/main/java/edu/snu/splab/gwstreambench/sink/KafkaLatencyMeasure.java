@@ -36,7 +36,7 @@ public class KafkaLatencyMeasure {
     measuringTimeOpt.setRequired(true);
     options.addOption(measuringTimeOpt);
 
-    final Option deadlineLatencyOpt = new Option("t", true, "The deadline latency");
+    final Option deadlineLatencyOpt = new Option("d", true, "The deadline latency");
     deadlineLatencyOpt.setRequired(true);
     options.addOption(deadlineLatencyOpt);
 
