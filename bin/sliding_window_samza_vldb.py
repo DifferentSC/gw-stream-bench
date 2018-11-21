@@ -13,6 +13,8 @@ args = parser.parse_args()
 with open(args.config_file_path, "r") as stream:
     configs = yaml.load(stream)
 
+# Print the read configurations
+print(configs)
 
 kafka_address = configs['kafka.server.address']
 zookeeper_address = configs['kafka.zookeeper.address']
@@ -87,8 +89,8 @@ sink_command_line = [
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.sink.KafkaLatencyMeasure",
     "-b", kafka_address,
-    "-t", time_running,
-    "-d", deadline_latency
+    "-t", str(time_running),
+    "-d", str(deadline_latency)
 ]
 
 source_process = None
