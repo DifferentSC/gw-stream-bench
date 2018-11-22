@@ -83,7 +83,7 @@ public class KafkaLatencyMeasure {
           }
         } else {
           if (loggingEnabled) {
-            System.out.println("Detected null record value! Record = " + record.toString());
+            System.out.println("Record = " + record.toString());
           }
           latencies.add(Long.valueOf(record.value()));
         }
