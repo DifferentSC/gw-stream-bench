@@ -59,7 +59,7 @@ public class KafkaLatencyMeasure {
     final String brokerAddress = cmd.getOptionValue("b");
     final long measuringTime = Long.valueOf(cmd.getOptionValue("m"));
     final long deadlineLatency = Long.valueOf(cmd.getOptionValue("t"));
-    final boolean loggingEnabled = Boolean.valueOf(cmd.getOptionValue("l", "false"));
+    final boolean loggingEnabled = Boolean.valueOf(cmd.getOptionValue("l"));
 
     final Properties props = new Properties();
     props.put("bootstrap.servers", brokerAddress);
