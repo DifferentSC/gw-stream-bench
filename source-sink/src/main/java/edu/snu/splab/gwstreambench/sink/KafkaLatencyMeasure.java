@@ -89,7 +89,7 @@ public class KafkaLatencyMeasure {
         }
       }
       endTime = System.currentTimeMillis();
-    } while(endTime - startTime < measuringTime);
+    } while(endTime - startTime < measuringTime * 1000);
     final BufferedWriter writer = new BufferedWriter(new FileWriter("./result.txt"));
     if (latencies.size() == 0) {
       writer.write("fail\n");
