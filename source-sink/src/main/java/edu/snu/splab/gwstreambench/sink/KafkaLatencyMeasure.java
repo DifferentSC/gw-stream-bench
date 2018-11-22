@@ -104,8 +104,8 @@ public class KafkaLatencyMeasure {
     } else {
       writer.write("fail\n");
     }
-    writer.write("p50 latency = " + p50latency + "\n");
-    writer.write("# of collected events = ");
+    writer.write("p50 latency = " + p50latency + "ms\n");
+    writer.write("# of collected events = " + latencies.size());
     writer.close();
   }
 }

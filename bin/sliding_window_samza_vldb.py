@@ -117,7 +117,7 @@ try:
         source_process = None
         # Collect the result
         with open("result.txt", "r") as result_stream:
-            result = result_stream.readline()
+            result = result_stream.readline().strip()
             success = (result == "success")
         print("Current Thp = %d" % current_event_rate)
 
