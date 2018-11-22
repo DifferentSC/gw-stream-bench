@@ -161,7 +161,7 @@ public class WindowedSamzaVLDBExp {
           .window(SlidingProcessingTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
           .process(new CountProcessWithLatency())
           // Leave only the latencies
-          .map(x -> String.valueOf(x.f3))
+          .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
           .returns(String.class);
     }
 
