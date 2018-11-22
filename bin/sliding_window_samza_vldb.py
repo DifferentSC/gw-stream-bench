@@ -32,6 +32,7 @@ timer_threads_num = int(configs['timer.threads.num'])
 time_wait = int(configs['time.wait'])
 time_running = int(configs['time.running'])
 deadline_latency = int(configs['deadline.latency'])
+logging = bool(configs['logging'])
 
 state_backend = configs['state_backend']
 
@@ -90,7 +91,8 @@ sink_command_line = [
     "edu.snu.splab.gwstreambench.sink.KafkaLatencyMeasure",
     "-b", kafka_address,
     "-t", str(time_running),
-    "-d", str(deadline_latency)
+    "-d", str(deadline_latency),
+    "-l", str(logging)
 ]
 
 source_process = None

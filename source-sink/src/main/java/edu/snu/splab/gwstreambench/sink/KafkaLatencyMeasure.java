@@ -40,6 +40,10 @@ public class KafkaLatencyMeasure {
     deadlineLatencyOpt.setRequired(true);
     options.addOption(deadlineLatencyOpt);
 
+    final Option loggingOpt = new Option("l", true, "Logging for debugging");
+    loggingOpt.setRequired(false);
+    options.addOption(loggingOpt);
+
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
     final CommandLine cmd;
@@ -55,6 +59,7 @@ public class KafkaLatencyMeasure {
     final String brokerAddress = cmd.getOptionValue("b");
     final long measuringTime = Long.valueOf(cmd.getOptionValue("m"));
     final long deadlineLatency = Long.valueOf(cmd.getOptionValue("t"));
+    final boolean loggingEnabled = Boolean.valueOf(cmd.getOptionValue("l", "false"));
 
     final Properties props = new Properties();
     props.put("bootstrap.servers", brokerAddress);
@@ -72,7 +77,16 @@ public class KafkaLatencyMeasure {
     do {
       final ConsumerRecords<String, String> records = consumer.poll(100);
       for (final ConsumerRecord<String, String> record : records) {
-        latencies.add(Long.valueOf(record.value()));
+        if (record.value() == null) {
+          if (loggingEnabled) {
+            System.out.println("Detected null record value! Record = " + record.toString());
+          }
+        } else {
+          if (loggingEnabled) {
+            System.out.println("Detected null record value! Record = " + record.toString());
+          }
+          latencies.add(Long.valueOf(record.value()));
+        }
       }
       endTime = System.currentTimeMillis();
     } while(endTime - startTime < measuringTime);
