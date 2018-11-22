@@ -57,8 +57,8 @@ public class KafkaLatencyMeasure {
       return;
     }
     final String brokerAddress = cmd.getOptionValue("b");
-    final long measuringTime = Long.valueOf(cmd.getOptionValue("m"));
-    final long deadlineLatency = Long.valueOf(cmd.getOptionValue("t"));
+    final long measuringTime = Long.valueOf(cmd.getOptionValue("t"));
+    final long deadlineLatency = Long.valueOf(cmd.getOptionValue("d"));
     final boolean loggingEnabled = Boolean.valueOf(cmd.getOptionValue("l"));
 
     final Properties props = new Properties();
