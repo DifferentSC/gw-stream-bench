@@ -48,8 +48,8 @@ public class WindowedSamzaVLDBExp {
     final String queryType;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
-      brokerAddress = params.get("broker_address");
-      zookeeperAddress = params.get("zookeeper_address");
+      brokerAddress = params.get("broker_address", "");
+      zookeeperAddress = params.get("zookeeper_address", "");
       dbPath = params.get("rocksdb_path", "");
       stateStorePath = params.get("state_store_path", "");
       blockCacheSize = params.getInt("block_cache_size", 0);
@@ -123,14 +123,10 @@ public class WindowedSamzaVLDBExp {
     properties.setProperty("bootstrap.servers", brokerAddress);
     properties.setProperty("zookeeper.connect", zookeeperAddress);
 
-    // get input data by connecting to the kafka server
-    DataStream<String> text = env.addSource(
-        new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
-    );
-
     System.out.println("CheckpointingConfig: " + env.getCheckpointConfig().getCheckpointInterval());
     DataStream<String> count = null;
     if (queryType.equals("aggregate-count")) {
+      final DataStream<String> text = env.readTextFile(textFilePath);
       System.out.println("Query type: Window with aggregate state");
       // parse the data, group it, window it, and aggregate the counts
       count = text
@@ -146,7 +142,28 @@ public class WindowedSamzaVLDBExp {
           .filter(x -> x.f0 == 1)
           .map(Tuple2::toString)
           .returns(String.class);
+    } else if (queryType.equals("list-count")) {
+      final DataStream<String> text = env.readTextFile(textFilePath);
+      System.out.println("Query type: Window with aggregate state");
+      // parse the data, group it, window it, and aggregate the counts
+      count = text
+          .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
+            public void flatMap(String value, Collector<Tuple2<Integer, String>> out) {
+              String[] splitLine = value.split("\\s");
+              out.collect(new Tuple2<>(Integer.valueOf(splitLine[0]), splitLine[1]));
+            }
+          })
+          .keyBy(0)
+          .countWindow(windowSize)
+          .process(new CountProcess())
+          .filter(x -> x.f0 == 1)
+          .map(x -> x.toString())
+          .returns(String.class);
     } else if (queryType.equals("list-sliding-window")) {
+      // get input data by connecting to the kafka server
+      DataStream<String> text = env.addSource(
+          new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
+      );
       System.out.println("State type: List");
       // parse the data, group it, window it, and aggregate the counts
       count = text
