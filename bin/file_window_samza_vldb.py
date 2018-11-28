@@ -4,6 +4,7 @@ import time
 import os
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument("text_file_path")
 parser.add_argument("tuple_num", type=int)
 parser.add_argument("key_num", type=int)
@@ -54,8 +55,9 @@ if args.exp_mode == "mem":
 elif args.exp_mode == "rocksdb_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "rocksdb",
-        "--rocksdb_path", "/tmp",
-        "--block_cache_size", str(0)
+        "--rocksdb_path", "/home/stream/sata",
+        "--block_cache_size", str(20480),
+        '--write_buffer_size', str(1024)
     ]
 
 elif args.exp_mode == "rocksdb_nvme":
@@ -78,7 +80,7 @@ elif args.exp_mode == "rocksdb_nvme_lru":
 elif args.exp_mode == "streamix_sata":
     flink_command_line = flink_common_command_line + [
         "--state_backend", "streamix",
-        "--state_store_path", "/home/gyewon/state_tmp",
+        "--state_store_path", "/home/stream/sata",
         "--batch_write_size", str(10000)
     ]
 

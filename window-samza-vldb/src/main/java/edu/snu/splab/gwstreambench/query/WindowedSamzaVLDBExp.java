@@ -144,7 +144,7 @@ public class WindowedSamzaVLDBExp {
           .returns(String.class);
     } else if (queryType.equals("list-count")) {
       final DataStream<String> text = env.readTextFile(textFilePath);
-      System.out.println("Query type: Window with aggregate state");
+      System.out.println("Query type: Count window with list state");
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple2<Integer, String>>() {
@@ -164,7 +164,7 @@ public class WindowedSamzaVLDBExp {
       DataStream<String> text = env.addSource(
           new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
       );
-      System.out.println("State type: List");
+      System.out.println("Query type: Sliding window with list state");
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
