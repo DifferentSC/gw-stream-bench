@@ -38,8 +38,8 @@ flink_command_line = None
 flink_common_command_line = [
     "flink", "run",
     "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
-    "--broker_address", "localhost:9092",
-    "--zookeeper_address", "localhost:2181",
+    "--broker_address", "147.46.216.122:9092",
+    "--zookeeper_address", "147.46.216.122:2181",
     "--text_file_path", str(args.text_file_path),
     "--window_size", str(args.window_size),
     "--window_interval", str(args.window_size),

@@ -94,7 +94,7 @@ public class WindowedSamzaVLDBExp {
               )
               .setWriteBufferSize(writeBufferSize * 1024 * 1024)
               .setMemTableConfig(new SkipListMemTableConfig())
-              .setMaxWriteBufferNumber(16)
+              .setMaxWriteBufferNumber(1)
               .setTargetFileSizeBase(128 * 1024 * 1024)
               .setLevelZeroSlowdownWritesTrigger(40)
               .setLevelZeroStopWritesTrigger(46)
