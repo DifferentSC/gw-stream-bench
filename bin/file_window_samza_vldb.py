@@ -5,6 +5,7 @@ import os
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("exp_mode")
 parser.add_argument("text_file_path")
 parser.add_argument("tuple_num", type=int)
 parser.add_argument("key_num", type=int)
