@@ -56,14 +56,14 @@ if state_backend == "mem":
 elif state_backend == "rocksdb":
     flink_command_line = flink_common_command_line + [
         "--rocksdb_path", configs['rocksdb.path'],
-        "--block_cache_size", configs['rocksdb.block_cache_size'],
-        "--write_buffer_size", configs['rocksdb.write_buffer_size']
+        "--block_cache_size", str(configs['rocksdb.block_cache_size']),
+        "--write_buffer_size", str(configs['rocksdb.write_buffer_size'])
     ]
 
 elif state_backend == "streamix":
     flink_command_line = flink_common_command_line + [
         "--state_store_path", configs['streamix.path'],
-        "--batch_write_size", configs['streamix.batch_write_size']
+        "--batch_write_size", str(configs['streamix.batch_write_size'])
     ]
 
 print("Submit the query the flink")
