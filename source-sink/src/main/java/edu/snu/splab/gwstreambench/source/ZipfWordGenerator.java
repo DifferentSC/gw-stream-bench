@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by Gyewon on 2018. 4. 9..
+ * The zipfian word generator.
  */
-public class ZipfWordGenerator {
+public class ZipfWordGenerator implements WordGenerator {
 
   private final List<String> wordList;
 

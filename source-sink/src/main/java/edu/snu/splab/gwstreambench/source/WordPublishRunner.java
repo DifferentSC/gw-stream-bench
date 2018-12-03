@@ -24,7 +24,7 @@ public class WordPublishRunner extends TimerTask {
 
   private final int eventsEmitsPerBatch;
 
-  private final ZipfWordGenerator wordGenerator;
+  private final WordGenerator wordGenerator;
 
   private final List<String> marginList;
 
@@ -32,7 +32,7 @@ public class WordPublishRunner extends TimerTask {
 
   public WordPublishRunner(
       final Producer<String, String> kafkaProducer,
-      final ZipfWordGenerator wordGenerator,
+      final WordGenerator wordGenerator,
       final String topicName,
       final int eventsEmitsPerBatch,
       final List<String> marginList

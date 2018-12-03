@@ -84,7 +84,7 @@ public class KafkaWordGeneratingSource {
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
     final Producer<String, String> kafkaProducer = new KafkaProducer<String, String>(props);
-    final ZipfWordGenerator wordGenerator = new ZipfWordGenerator(numKeys, skewness);
+    final WordGenerator wordGenerator = new UniformWordGenerator(numKeys);
     // Start timer threads.
     for (int i = 0; i < numThreads; i++) {
       final Timer timer = new Timer();
