@@ -146,6 +146,8 @@ try:
             while backpressure['status'] == 'deprecated':
                 print("Sleep for 5 seconds to get backpressure samples...")
                 time.sleep(5)
+                backpressure = requests.get(flink_api_address +
+                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
             print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
             if backpressure['backpressure-level'] == 'high':
                 success = False
