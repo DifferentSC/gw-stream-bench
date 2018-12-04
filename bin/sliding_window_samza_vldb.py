@@ -3,6 +3,7 @@ import yaml
 import subprocess
 import time
 import os, signal
+import requests
 
 configs = None
 
@@ -15,6 +16,8 @@ with open(args.config_file_path, "r") as stream:
 
 # Print the read configurations
 print(configs)
+
+flink_api_address = configs['flink.api.address']
 
 kafka_address = configs['kafka.server.address']
 zookeeper_address = configs['kafka.zookeeper.address']
@@ -72,6 +75,27 @@ print("Submit the query the flink")
 submit_query = subprocess.Popen(flink_command_line)
 time.sleep(5)
 
+jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
+job_id_list = []
+for job in jobs:
+    if job['status'] == 'RUNNING':
+        job_id_list.append(job['id'])
+
+if len(job_id_list) > 1:
+    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
+    exit(0)
+
+job_id = job_id_list[0]
+
+print("Job ID = %s" % job_id)
+
+vertices = requests.get(flink_api_address + "/jobs/" + job_id)
+vertices_id_list = []
+for vertex in vertices:
+    vertices_id_list.append(vertex['id'])
+
+print("Vertices ID = %s" % vertices_id_list)
+
 current_event_rate = rate_init - rate_increase
 success = True
 
@@ -100,6 +124,7 @@ source_process = None
 
 try:
     while success:
+        print("Current Thp = %d" % current_event_rate)
         current_event_rate += rate_increase
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
@@ -116,11 +141,20 @@ try:
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
         source_process = None
+
+        success = True
+        for vertex_id in vertices_id_list:
+            backpressure = requests.get("/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure")
+            print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
+            if backpressure['backpressure-level'] == "high":
+                success = False
+
+        """
         # Collect the result
         with open("result.txt", "r") as result_stream:
             result = result_stream.readline().strip()
             success = (result == "success")
-        print("Current Thp = %d" % current_event_rate)
+        """
 
 except KeyboardInterrupt:
     if source_process is not None:
