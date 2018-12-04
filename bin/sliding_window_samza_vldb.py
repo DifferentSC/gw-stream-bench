@@ -137,19 +137,22 @@ try:
         time.sleep(time_wait)
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
-        sink_process = subprocess.call(sink_command_line)
-        # Kill the source process
-        os.kill(source_process.pid, signal.SIGKILL)
-        source_process = None
+        # sink_process = subprocess.call(sink_command_line)
 
         success = True
         for vertex_id in vertices_id_list:
             backpressure = requests.get(flink_api_address +
                                         "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-            print(backpressure)
+            while backpressure['status'] == 'deprecated':
+                print("Sleep for 5 seconds to get backpressure samples...")
+                time.sleep(5)
             print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-            if backpressure['backpressure-level'] == "high":
+            if backpressure['backpressure-level'] == 'high':
                 success = False
+
+        # Kill the source process
+        os.kill(source_process.pid, signal.SIGKILL)
+        source_process = None
 
         """
         # Collect the result
