@@ -63,7 +63,8 @@ elif state_backend == "rocksdb":
 elif state_backend == "streamix":
     flink_command_line = flink_common_command_line + [
         "--state_store_path", configs['streamix.path'],
-        "--batch_write_size", str(configs['streamix.batch_write_size'])
+        "--batch_write_size", str(configs['streamix.batch_write_size']),
+        "--file_num", str(configs['streamix.file_num'])
     ]
 
 print("Submit the query the flink")
