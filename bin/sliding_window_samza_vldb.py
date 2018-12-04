@@ -89,7 +89,7 @@ job_id = job_id_list[0]
 
 print("Job ID = %s" % job_id)
 
-vertices = requests.get(flink_api_address + "/jobs/" + job_id)
+vertices = requests.get(flink_api_address + "/jobs/" + job_id)['vertices']
 vertices_id_list = []
 for vertex in vertices:
     vertices_id_list.append(vertex['id'])
@@ -156,7 +156,7 @@ try:
             success = (result == "success")
         """
 
-except KeyboardInterrupt:
+except Exception:
     print("Killing the source process and the flink job...")
     if source_process is not None:
         os.kill(source_process.pid, signal.SIGKILL)
