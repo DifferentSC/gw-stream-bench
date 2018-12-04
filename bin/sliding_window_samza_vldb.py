@@ -157,9 +157,12 @@ try:
         """
 
 except KeyboardInterrupt:
+    print("Killing the source process and the flink job...")
     if source_process is not None:
-        print("Killing the source process...")
         os.kill(source_process.pid, signal.SIGKILL)
+    requests.patch("/jobs/" + job_id)
     print("Evaluation Interrupted!")
 
+print("Killing the source process and the flink job...")
+requests.patch("/jobs/" + job_id)
 print("Evaluation finished.")
