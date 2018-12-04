@@ -163,6 +163,6 @@ except KeyboardInterrupt:
     requests.patch("/jobs/" + job_id)
     print("Evaluation Interrupted!")
 
-print("Killing the source process and the flink job...")
+print("Killing the flink job...")
 requests.patch("/jobs/" + job_id)
 print("Evaluation finished.")
