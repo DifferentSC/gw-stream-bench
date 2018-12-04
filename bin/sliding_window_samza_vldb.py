@@ -124,8 +124,8 @@ source_process = None
 
 try:
     while success:
-        print("Current Thp = %d" % current_event_rate)
         current_event_rate += rate_increase
+        print("Current Thp = %d" % current_event_rate)
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
@@ -172,5 +172,5 @@ except:
     raise
 
 print("Killing the flink job...")
-requests.patch("/jobs/" + job_id)
+requests.patch(flink_api_address + "/jobs/" + job_id)
 print("Evaluation finished.")
