@@ -146,6 +146,7 @@ try:
         for vertex_id in vertices_id_list:
             backpressure = requests.get(flink_api_address +
                                         "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+            print(backpressure)
             print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
             if backpressure['backpressure-level'] == "high":
                 success = False
