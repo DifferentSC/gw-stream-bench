@@ -89,7 +89,7 @@ job_id = job_id_list[0]
 
 print("Job ID = %s" % job_id)
 
-vertices = requests.get(flink_api_address + "/jobs/" + job_id)['vertices']
+vertices = requests.get(flink_api_address + "/jobs/" + job_id).json()['vertices']
 vertices_id_list = []
 for vertex in vertices:
     vertices_id_list.append(vertex['id'])
