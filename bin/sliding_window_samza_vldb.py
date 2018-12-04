@@ -161,8 +161,9 @@ except:
     print("Killing the source process and the flink job...")
     if source_process is not None:
         os.kill(source_process.pid, signal.SIGKILL)
-    requests.patch("/jobs/" + job_id)
+    requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
+    raise
 
 print("Killing the flink job...")
 requests.patch("/jobs/" + job_id)
