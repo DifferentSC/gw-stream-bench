@@ -144,7 +144,8 @@ try:
 
         success = True
         for vertex_id in vertices_id_list:
-            backpressure = requests.get("/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure")
+            backpressure = requests.get(flink_api_address +
+                                        "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure")
             print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
             if backpressure['backpressure-level'] == "high":
                 success = False
@@ -156,7 +157,7 @@ try:
             success = (result == "success")
         """
 
-except Exception:
+except:
     print("Killing the source process and the flink job...")
     if source_process is not None:
         os.kill(source_process.pid, signal.SIGKILL)
