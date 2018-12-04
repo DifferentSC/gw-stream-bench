@@ -138,6 +138,7 @@ try:
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
         # sink_process = subprocess.call(sink_command_line)
+        time.sleep(time_running)
 
         success = True
         for vertex_id in vertices_id_list:
