@@ -21,6 +21,7 @@ import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
+import org.rocksdb.PlainTableConfig;
 import org.rocksdb.SkipListMemTableConfig;
 
 import java.util.Properties;
@@ -100,7 +101,7 @@ public class WindowedSamzaVLDBExp {
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
               .setCompressionType(CompressionType.NO_COMPRESSION)
-              .setTableFormatConfig(new BlockBasedTableConfig())
+              .setTableFormatConfig(new PlainTableConfig())
               .useFixedLengthPrefixExtractor(16)
               .setOptimizeFiltersForHits(false);
           //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
