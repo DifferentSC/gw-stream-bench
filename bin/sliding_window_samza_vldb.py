@@ -18,6 +18,8 @@ with open(args.config_file_path, "r") as stream:
 print(configs)
 
 flink_api_address = configs['flink.api.address']
+flink_backpressure_update_interval = configs['flink.backpressure.update_interval']
+flink_backpressure_threshold = configs['flink.backpressure.threshold']
 
 kafka_address = configs['kafka.server.address']
 zookeeper_address = configs['kafka.zookeeper.address']
@@ -122,6 +124,21 @@ sink_command_line = [
 
 source_process = None
 
+# Monitor backpressure to initiate sampling
+backpressure_map = {}
+
+for vertex_id in vertices_id_list:
+    backpressure = requests.get(flink_api_address +
+                                "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+    while backpressure['status'] == 'deprecated':
+        print("Sleep for 5 seconds to get backpressure samples...")
+        time.sleep(5)
+        backpressure = requests.get(flink_api_address +
+                                    "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+    backpressure_map[vertex_id] = []
+
+success = True
+
 try:
     while success:
         current_event_rate += rate_increase
@@ -138,19 +155,28 @@ try:
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
         # sink_process = subprocess.call(sink_command_line)
-        time.sleep(time_running)
+
+        start_time = time.time()
+        current_backpressure_timestamp = 0
+
+        while time.time() - start_time < time_running:
+            success = True
+            for vertex_id in vertices_id_list:
+                backpressure = requests.get(flink_api_address +
+                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+                if backpressure['end-timestamp'] > current_backpressure_timestamp:
+                    backpressure_map[vertex_id].append(backpressure)
+                    print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
+                    current_backpressure_timestamp = backpressure['end-timestamp']
+            time.sleep(5)
 
         success = True
         for vertex_id in vertices_id_list:
-            backpressure = requests.get(flink_api_address +
-                                        "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-            while backpressure['status'] == 'deprecated':
-                print("Sleep for 5 seconds to get backpressure samples...")
-                time.sleep(5)
-                backpressure = requests.get(flink_api_address +
-                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-            print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-            if backpressure['backpressure-level'] == 'high':
+            high_backpressure_count = 0
+            for backpressure in backpressure_map[vertex_id]:
+                if backpressure['backpressure-level'] == 'high':
+                    high_backpressure_count += 1
+            if high_backpressure_count > len(backpressure_map[vertex_id] * flink_backpressure_threshold):
                 success = False
 
         # Kill the source process
@@ -163,6 +189,8 @@ try:
             result = result_stream.readline().strip()
             success = (result == "success")
         """
+
+
 
 except:
     print("Killing the source process and the flink job...")
