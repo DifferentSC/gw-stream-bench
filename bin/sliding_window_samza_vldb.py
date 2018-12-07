@@ -62,7 +62,8 @@ elif state_backend == "rocksdb":
     flink_command_line = flink_common_command_line + [
         "--rocksdb_path", configs['rocksdb.path'],
         "--block_cache_size", str(configs['rocksdb.block_cache_size']),
-        "--write_buffer_size", str(configs['rocksdb.write_buffer_size'])
+        "--write_buffer_size", str(configs['rocksdb.write_buffer_size']),
+        "--table_format", str(configs['rocksdb.table_format'])
     ]
 
 elif state_backend == "streamix":

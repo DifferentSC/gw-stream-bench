@@ -23,6 +23,7 @@ import org.rocksdb.CompressionType;
 import org.rocksdb.DBOptions;
 import org.rocksdb.PlainTableConfig;
 import org.rocksdb.SkipListMemTableConfig;
+import org.rocksdb.TableFormatConfig;
 
 import java.util.Properties;
 
@@ -47,6 +48,7 @@ public class WindowedSamzaVLDBExp {
     final Integer windowSize;
     final Integer windowInterval;
     final String queryType;
+    final String tableFormat;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address", "");
@@ -65,6 +67,7 @@ public class WindowedSamzaVLDBExp {
       windowSize = params.getInt("window_size");
       windowInterval = params.getInt("window_interval");
       queryType = params.get("query_type");
+      tableFormat = params.get("table_format");
     } catch (final Exception e) {
       System.err.println("Missing configuration!");
       return;
@@ -87,6 +90,16 @@ public class WindowedSamzaVLDBExp {
         }
         @Override
         public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
+
+          final TableFormatConfig tableFormatConfig;
+          if (tableFormat.equals("block")) {
+            tableFormatConfig = new BlockBasedTableConfig();
+          } else if (tableFormat.equals("plain")) {
+            tableFormatConfig = new PlainTableConfig();
+          } else {
+            throw new IllegalArgumentException("RocksDB table format should be one of block or plain.");
+          }
+
           return columnFamilyOptions
               .setTableFormatConfig(new BlockBasedTableConfig()
                   .setNoBlockCache(blockCacheSize == 0)
@@ -101,7 +114,7 @@ public class WindowedSamzaVLDBExp {
               .setLevelZeroStopWritesTrigger(46)
               .setBloomLocality(1)
               .setCompressionType(CompressionType.NO_COMPRESSION)
-              .setTableFormatConfig(new PlainTableConfig())
+              .setTableFormatConfig(tableFormatConfig)
               .useFixedLengthPrefixExtractor(16)
               .setOptimizeFiltersForHits(false);
           //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
