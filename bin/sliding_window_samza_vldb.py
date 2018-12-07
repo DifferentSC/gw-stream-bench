@@ -172,7 +172,6 @@ try:
                     end_timestamp_map[vertex_id] = backpressure['end-timestamp']
             time.sleep(5)
 
-        success = True
         for vertex_id in vertices_id_list:
             high_backpressure_count = 0
             for backpressure in backpressure_map[vertex_id]:
@@ -180,6 +179,9 @@ try:
                     high_backpressure_count += 1
             if high_backpressure_count > len(backpressure_map[vertex_id]) * flink_backpressure_threshold:
                 success = False
+            # Initialize the backpressure & timestamp map
+            backpressure_map[vertex_id] = []
+            end_timestamp_map = {}
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
