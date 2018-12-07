@@ -17,6 +17,9 @@ with open(args.config_file_path, "r") as stream:
 # Print the read configurations
 print(configs)
 
+requests.post('https://hooks.slack.com/services/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',
+              json={"text": str(configs)})
+
 flink_api_address = configs['flink.api.address']
 flink_backpressure_threshold = configs['flink.backpressure.threshold']
 
@@ -145,6 +148,8 @@ try:
     while success:
         current_event_rate += rate_increase
         print("Current Thp = %d" % current_event_rate)
+        requests.post("https://hooks.slack.com/services/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",
+                      json={"text": "Current throughput = %d" % current_event_rate})
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
@@ -187,14 +192,12 @@ try:
         os.kill(source_process.pid, signal.SIGKILL)
         source_process = None
 
-        """
-        # Collect the result
-        with open("result.txt", "r") as result_stream:
-            result = result_stream.readline().strip()
-            success = (result == "success")
-        """
-
-
+        if success:
+            requests.post("https://hooks.slack.com/services/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",
+                          json={"text": "Eval passed at thp = %d" % current_event_rate})
+        else:
+            requests.post("https://hooks.slack.com/services/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",
+                          json={"text": "Eval passed at thp = %d" % current_event_rate})
 
 except:
     print("Killing the source process and the flink job...")
@@ -202,6 +205,8 @@ except:
         os.kill(source_process.pid, signal.SIGKILL)
     requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
+    requests.post("https://hooks.slack.com/services/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",
+                  json={"text": "Evaluation interrupted!"})
     raise
 
 print("Killing the flink job...")
