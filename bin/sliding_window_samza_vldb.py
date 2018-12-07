@@ -197,7 +197,7 @@ try:
                           json={"text": "Eval passed at thp = %d" % current_event_rate})
         else:
             requests.post("https://hooks.slack.com/services/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",
-                          json={"text": "Eval passed at thp = %d" % current_event_rate})
+                          json={"text": "Eval failed at thp = %d" % current_event_rate})
 
 except:
     print("Killing the source process and the flink job...")
