@@ -18,7 +18,6 @@ with open(args.config_file_path, "r") as stream:
 print(configs)
 
 flink_api_address = configs['flink.api.address']
-flink_backpressure_update_interval = configs['flink.backpressure.update_interval']
 flink_backpressure_threshold = configs['flink.backpressure.threshold']
 
 kafka_address = configs['kafka.server.address']
