@@ -181,7 +181,7 @@ try:
                 success = False
             # Initialize the backpressure & timestamp map
             backpressure_map[vertex_id] = []
-            end_timestamp_map = 0
+            end_timestamp_map[vertex_id] = 0
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
