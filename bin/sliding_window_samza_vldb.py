@@ -178,7 +178,7 @@ try:
             for backpressure in backpressure_map[vertex_id]:
                 if backpressure['backpressure-level'] == 'high':
                     high_backpressure_count += 1
-            if high_backpressure_count > len(backpressure_map[vertex_id] * flink_backpressure_threshold):
+            if high_backpressure_count > len(backpressure_map[vertex_id]) * flink_backpressure_threshold:
                 success = False
 
         # Kill the source process
