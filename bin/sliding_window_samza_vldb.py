@@ -126,6 +126,7 @@ source_process = None
 
 # Monitor backpressure to initiate sampling
 backpressure_map = {}
+end_timestamp_map = {}
 
 for vertex_id in vertices_id_list:
     backpressure = requests.get(flink_api_address +
@@ -136,6 +137,7 @@ for vertex_id in vertices_id_list:
         backpressure = requests.get(flink_api_address +
                                     "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
     backpressure_map[vertex_id] = []
+    end_timestamp_map[vertex_id] = 0
 
 success = True
 
@@ -164,10 +166,10 @@ try:
             for vertex_id in vertices_id_list:
                 backpressure = requests.get(flink_api_address +
                                             "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-                if backpressure['end-timestamp'] > current_backpressure_timestamp:
+                if backpressure['end-timestamp'] > end_timestamp_map[vertex_id]:
                     backpressure_map[vertex_id].append(backpressure)
                     print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-                    current_backpressure_timestamp = backpressure['end-timestamp']
+                    end_timestamp_map[vertex_id] = backpressure['end-timestamp']
             time.sleep(5)
 
         success = True
