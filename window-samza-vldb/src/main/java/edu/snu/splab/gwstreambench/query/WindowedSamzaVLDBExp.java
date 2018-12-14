@@ -47,6 +47,7 @@ public class WindowedSamzaVLDBExp {
     final Integer fileNum;
     final Integer windowSize;
     final Integer windowInterval;
+    final Integer sessionGap;
     final String queryType;
     final String tableFormat;
     try {
@@ -58,14 +59,13 @@ public class WindowedSamzaVLDBExp {
       blockCacheSize = params.getInt("block_cache_size", 0);
       stateBackend = params.get("state_backend");
       textFilePath = params.get("text_file_path");
-      cacheOption = params.get("cache_option", "NONE");
-      System.out.println("Cache Option = " + cacheOption);
       cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size", 0);
       writeBufferSize = params.getInt("write_buffer_size", 0);
       fileNum = params.getInt("file_num", 1);
-      windowSize = params.getInt("window_size");
-      windowInterval = params.getInt("window_interval");
+      windowSize = params.getInt("window_size", -1);
+      windowInterval = params.getInt("window_interval", -1);
+      sessionGap = params.getInt("session_gap", -1);
       queryType = params.get("query_type");
       tableFormat = params.get("table_format");
     } catch (final Exception e) {
@@ -194,7 +194,7 @@ public class WindowedSamzaVLDBExp {
           // Leave only the latencies
           .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
           .returns(String.class);
-    }
+    } else if (queryType.equals(""))
 
     count.addSink(new FlinkKafkaProducer011<>(
         "result", new SimpleStringSchema(), properties));

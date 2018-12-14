@@ -17,51 +17,57 @@ with open(args.config_file_path, "r") as stream:
 # Print the read configurations
 print(configs)
 
-requests.post('https://hooks.slack.com/services/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',
+slack_webhook_url = 'https://hooks.slack.com/services/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'
+
+requests.post(slack_webhook_url,
               json={"text": str(configs)})
 
+# flink settings
 flink_api_address = configs['flink.api.address']
-flink_backpressure_threshold = configs['flink.backpressure.threshold']
 
+# kafka settings
 kafka_address = configs['kafka.server.address']
 zookeeper_address = configs['kafka.zookeeper.address']
-key_num = int(configs['key.num'])
-key_skewness = float(configs['key.skewness'])
-value_margin = int(configs['value.margin'])
-window_size = int(configs['window.size'])
-window_interval = int(configs['window.interval'])
+
+# source settings
+rate_init = int(configs['source.rate.init'])
+rate_increase = int(configs['source.rate.increase'])
+timer_threads_num = int(configs['source.timer.threads.num'])
+key_num = int(configs['source.key.num'])
+key_skewness = float(configs['source.key.skewness'])
+value_margin = int(configs['source.value.margin'])
+
+# exp settings
+time_wait = int(configs['exp.wait_time'])
+time_running = int(configs['exp.running_time'])
+backpressure_threshold = int(configs['exp.backpressure_threshold'])
+
 query = configs['query']
-
-rate_init = int(configs['rate.init'])
-rate_increase = int(configs['rate.increase'])
-timer_threads_num = int(configs['timer.threads.num'])
-
-time_wait = int(configs['time.wait'])
-time_running = int(configs['time.running'])
-deadline_latency = int(configs['deadline.latency'])
-logging = bool(configs['logging'])
-
 state_backend = configs['state_backend']
 
 # submit the query firstly to flink
-flink_common_command_line = [
+flink_command_line = [
     "flink", "run",
     "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", kafka_address,
     "--zookeeper_address", zookeeper_address,
-    "--window_size", str(window_size),
-    "--window_interval", str(window_interval),
     "--query_type", str(query),
     "--state_backend", state_backend
 ]
 
-flink_command_line = None
+if query == "session-window":
+    flink_command_line += [
+        "--session_gap", int(configs['query.window.session.gap'])
+    ]
 
-if state_backend == "mem":
-    flink_command_line = flink_common_command_line
+else:
+    flink_command_line += [
+        "--window_size", int(configs['query.window.size']),
+        "--window_interval", int(configs['query.window.interval'])
+    ]
 
-elif state_backend == "rocksdb":
-    flink_command_line = flink_common_command_line + [
+if state_backend == "rocksdb":
+    flink_command_line += [
         "--rocksdb_path", configs['rocksdb.path'],
         "--block_cache_size", str(configs['rocksdb.block_cache_size']),
         "--write_buffer_size", str(configs['rocksdb.write_buffer_size']),
@@ -69,7 +75,7 @@ elif state_backend == "rocksdb":
     ]
 
 elif state_backend == "streamix":
-    flink_command_line = flink_common_command_line + [
+    flink_command_line += [
         "--state_store_path", configs['streamix.path'],
         "--batch_write_size", str(configs['streamix.batch_write_size']),
         "--file_num", str(configs['streamix.file_num'])
@@ -104,7 +110,7 @@ print("Vertices ID = %s" % vertices_id_list)
 current_event_rate = rate_init - rate_increase
 success = True
 
-source_command_line_prefix = [
+source_command_line = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
@@ -115,6 +121,19 @@ source_command_line_prefix = [
     "-t", str(timer_threads_num)
 ]
 
+if query == "session":
+    source_command_line += [
+        "-w", "uniform-session",
+        "-ast", str(configs['source.session.average_term']),
+        "-sg", str(configs['source.session.gap'])
+    ]
+
+else:
+    source_command_line += [
+        "-w", "uniform"
+    ]
+
+"""
 sink_command_line = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
@@ -124,6 +143,7 @@ sink_command_line = [
     "-d", str(deadline_latency),
     "-l", str(logging)
 ]
+"""
 
 source_process = None
 
@@ -148,9 +168,9 @@ try:
     while success:
         current_event_rate += rate_increase
         print("Current Thp = %d" % current_event_rate)
-        requests.post("https://hooks.slack.com/services/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",
+        requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
-        source_command_line = source_command_line_prefix + [
+        source_command_line += [
             "-r", str(current_event_rate)
         ]
         print("Start source process...")
@@ -182,7 +202,7 @@ try:
             for backpressure in backpressure_map[vertex_id]:
                 if backpressure['backpressure-level'] == 'high':
                     high_backpressure_count += 1
-            if high_backpressure_count > len(backpressure_map[vertex_id]) * flink_backpressure_threshold:
+            if high_backpressure_count > len(backpressure_map[vertex_id]) * backpressure_threshold:
                 success = False
             # Initialize the backpressure & timestamp map
             backpressure_map[vertex_id] = []
@@ -193,10 +213,10 @@ try:
         source_process = None
 
         if success:
-            requests.post("https://hooks.slack.com/services/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",
+            requests.post(slack_webhook_url,
                           json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
         else:
-            requests.post("https://hooks.slack.com/services/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",
+            requests.post(slack_webhook_url,
                           json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
 
 except:
@@ -205,7 +225,7 @@ except:
         os.kill(source_process.pid, signal.SIGKILL)
     requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
-    requests.post("https://hooks.slack.com/services/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",
+    requests.post(slack_webhook_url,
                   json={"text": "Evaluation interrupted!"})
     raise
 

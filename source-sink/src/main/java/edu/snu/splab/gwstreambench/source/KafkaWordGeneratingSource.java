@@ -40,8 +40,20 @@ public class KafkaWordGeneratingSource {
     options.addOption(numKeysOption);
 
     final Option skewnessOption = new Option("s", true,"The zipfian skewness of key distribution");
-    skewnessOption.setRequired(true);
+    skewnessOption.setRequired(false);
     options.addOption(skewnessOption);
+
+    final Option wordGeneratorOption = new Option("w", true, "The word generator option");
+    wordGeneratorOption.setRequired(true);
+    options.addOption(wordGeneratorOption);
+
+    final Option averageSessionTermOption = new Option("ast", true, "The average session term option");
+    averageSessionTermOption.setRequired(false);
+    options.addOption(averageSessionTermOption);
+
+    final Option sessionGapOption = new Option("sg", true, "The session gap");
+    sessionGapOption.setRequired(false);
+    options.addOption(sessionGapOption);
 
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
@@ -61,7 +73,7 @@ public class KafkaWordGeneratingSource {
     final int numThreads = Integer.valueOf(cmd.getOptionValue("t"));
     final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
     final int marginSize = Integer.valueOf(cmd.getOptionValue("m"));
-    final double skewness = Double.valueOf(cmd.getOptionValue("s"));
+    final String wordGeneratorString = cmd.getOptionValue("w");
 
     final Random random = new Random();
     final List<String> marginList = new ArrayList<>();
@@ -84,7 +96,20 @@ public class KafkaWordGeneratingSource {
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
     final Producer<String, String> kafkaProducer = new KafkaProducer<String, String>(props);
-    final WordGenerator wordGenerator = new UniformWordGenerator(numKeys);
+    final WordGenerator wordGenerator;
+    if (wordGeneratorString.equals("uniform")) {
+      wordGenerator = new UniformWordGenerator(numKeys);
+    } else if (wordGeneratorString.equals("zipfian")) {
+      final double skewness = Double.valueOf(cmd.getOptionValue("s"));
+      wordGenerator = new ZipfWordGenerator(numKeys, skewness);
+    } else if (wordGeneratorString.equals("uniform-session")) {
+      final int averageSessionTerm = Integer.valueOf(cmd.getOptionValue("ast"));
+      final int sessionGap = Integer.valueOf(cmd.getOptionValue("sg"));
+      wordGenerator = new UniformSessionWordGenerator(numKeys, averageSessionTerm, sessionGap, 4);
+    } else {
+      throw new IllegalArgumentException("Word generator should be one of uniform / zipfian / uniform-session!");
+    }
+
     // Start timer threads.
     for (int i = 0; i < numThreads; i++) {
       final Timer timer = new Timer();
@@ -93,9 +118,9 @@ public class KafkaWordGeneratingSource {
               kafkaProducer,
               wordGenerator,
               "word",
-              eventRatePerSecond / numThreads,
+              (eventRatePerSecond / numThreads) / 10,
               marginList),
-          1000, 1000);
+          100, 100);
     }
     // Wait for 24 hrs.
     try {
