@@ -12,6 +12,7 @@ import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
@@ -194,7 +195,31 @@ public class WindowedSamzaVLDBExp {
           // Leave only the latencies
           .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
           .returns(String.class);
-    } else if (queryType.equals(""))
+    } else if (queryType.equals("session-window")) {
+      // get input data by connecting to the kafka server
+      DataStream<String> text = env.addSource(
+          new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
+      );
+      System.out.println("Query type: Sliding window with list state");
+      // parse the data, group it, window it, and aggregate the counts
+      count = text
+          .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
+            public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
+              String[] splitLine = value.split("\\s");
+              out.collect(new Tuple3<>(Integer.valueOf(splitLine[0]), splitLine[1],
+                  Long.valueOf(splitLine[2])));
+            }
+          })
+          .keyBy(0)
+          .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+          .process(new CountProcessWithLatency())
+          // Leave only the latencies
+          .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+          .returns(String.class);
+    } else {
+      throw new IllegalArgumentException("Query should be one of aggregate-count, list-count, list-sliding-window," +
+          " or session-window");
+    }
 
     count.addSink(new FlinkKafkaProducer011<>(
         "result", new SimpleStringSchema(), properties));
