@@ -57,13 +57,13 @@ flink_command_line = [
 
 if query == "session-window":
     flink_command_line += [
-        "--session_gap", int(configs['query.window.session.gap'])
+        "--session_gap", str(configs['query.window.session.gap'])
     ]
 
 else:
     flink_command_line += [
-        "--window_size", int(configs['query.window.size']),
-        "--window_interval", int(configs['query.window.interval'])
+        "--window_size", str(configs['query.window.size']),
+        "--window_interval", str(configs['query.window.interval'])
     ]
 
 if state_backend == "rocksdb":
