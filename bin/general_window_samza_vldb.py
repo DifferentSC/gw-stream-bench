@@ -110,7 +110,7 @@ print("Vertices ID = %s" % vertices_id_list)
 current_event_rate = rate_init - rate_increase
 success = True
 
-source_command_line = [
+source_command_line_prefix = [
     "java", "-cp",
     "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
@@ -122,14 +122,14 @@ source_command_line = [
 ]
 
 if query == "session":
-    source_command_line += [
+    source_command_line_prefix += [
         "-w", "uniform-session",
         "-ast", str(configs['source.session.average_term']),
         "-sg", str(configs['source.session.gap'])
     ]
 
 else:
-    source_command_line += [
+    source_command_line_prefix += [
         "-w", "uniform"
     ]
 
@@ -170,11 +170,12 @@ try:
         print("Current Thp = %d" % current_event_rate)
         requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
-        source_command_line += [
+        source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
         print("Start source process...")
         # Start the source process
+        print("Source commandline = %s " % str(source_command_line))
         source_process = subprocess.Popen(source_command_line)
         # Wait for the designated time
         print("Waiting for %d secs..." % time_wait)
