@@ -187,7 +187,6 @@ try:
         current_backpressure_timestamp = 0
 
         while time.time() - start_time < time_running:
-            success = True
             for vertex_id in vertices_id_list:
                 backpressure = requests.get(flink_api_address +
                                             "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
@@ -197,6 +196,7 @@ try:
                     end_timestamp_map[vertex_id] = backpressure['end-timestamp']
             time.sleep(5)
 
+        success = True
         for vertex_id in vertices_id_list:
             high_backpressure_count = 0
             for backpressure in backpressure_map[vertex_id]:
@@ -204,6 +204,8 @@ try:
                     high_backpressure_count += 1
             if high_backpressure_count > len(backpressure_map[vertex_id]) * backpressure_threshold:
                 success = False
+                print("high backpressure count: %d, which is bigger than %d"
+                      % (high_backpressure_count, len(backpressure_map[vertex_id]) * backpressure_threshold))
             # Initialize the backpressure & timestamp map
             backpressure_map[vertex_id] = []
             end_timestamp_map[vertex_id] = 0
