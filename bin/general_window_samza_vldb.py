@@ -40,7 +40,7 @@ value_margin = int(configs['source.value.margin'])
 # exp settings
 time_wait = int(configs['exp.wait_time'])
 time_running = int(configs['exp.running_time'])
-backpressure_threshold = int(configs['exp.backpressure_threshold'])
+backpressure_threshold = float(configs['exp.backpressure_threshold'])
 
 query = configs['query']
 state_backend = configs['state_backend']
