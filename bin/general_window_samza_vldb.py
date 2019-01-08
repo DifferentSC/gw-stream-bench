@@ -203,7 +203,7 @@ try:
             for backpressure in backpressure_map[vertex_id]:
                 if backpressure['backpressure-level'] == 'high':
                     high_backpressure_count += 1
-            if high_backpressure_count >= len(backpressure_map[vertex_id]) * backpressure_threshold:
+            if high_backpressure_count == len(backpressure_map[vertex_id]):
                 success = False
                 print("high backpressure count: %d, which is bigger than %d"
                       % (high_backpressure_count, len(backpressure_map[vertex_id]) * backpressure_threshold))
