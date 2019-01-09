@@ -59,6 +59,7 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-statebackend-streamix</artifactId>
             <version>${flink.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
