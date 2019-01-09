@@ -195,7 +195,7 @@ try:
                     backpressure_map[vertex_id].append(backpressure)
                     print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
                     end_timestamp_map[vertex_id] = backpressure['end-timestamp']
-            time.sleep(5)
+            time.sleep(1)
 
         success = True
         for vertex_id in vertices_id_list:
