@@ -40,7 +40,7 @@ public class UniformSessionWordGenerator implements WordGenerator {
     this.random = new Random();
     for (int i = 0; i < numKeys; i++) {
       activeKeyMap.put(i, new AtomicBoolean(true));
-      final int sessionTerm = random.nextInt(averageSessionTerm) + averageSessionTerm / 2;
+      final int sessionTerm = random.nextInt(averageSessionTerm * 2);
       scheduledExecutorService.schedule(new SessionInactiveRunner(i), sessionTerm, TimeUnit.SECONDS);
     }
   }
@@ -66,7 +66,7 @@ public class UniformSessionWordGenerator implements WordGenerator {
     @Override
     public void run() {
       activeKeyMap.get(word).compareAndSet(false, true);
-      final int sessionTerm = random.nextInt(averageSessionTerm) + averageSessionTerm / 2;
+      final int sessionTerm = random.nextInt(averageSessionTerm) * 2;
       scheduledExecutorService.schedule(new SessionInactiveRunner(word), sessionTerm, TimeUnit.SECONDS);
     }
   }
