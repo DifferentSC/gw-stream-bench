@@ -81,7 +81,7 @@ public class UniformSessionWordGenerator implements WordGenerator {
 
     @Override
     public void run() {
-      activeKeyMap.get(word).compareAndSet(false, true);
+      activeKeyMap.get(word).compareAndSet(true, false);
       scheduledExecutorService.schedule(new SessionActiveRunner(word), sessionGap, TimeUnit.SECONDS);
     }
   }
