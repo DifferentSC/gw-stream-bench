@@ -121,7 +121,7 @@ source_command_line_prefix = [
     "-t", str(timer_threads_num)
 ]
 
-if query == "session":
+if query == "session-window":
     source_command_line_prefix += [
         "-w", "uniform-session",
         "-ast", str(configs['source.session.average_term']),
