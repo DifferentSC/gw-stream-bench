@@ -10,6 +10,8 @@ import java.util.Random;
  */
 public class ZipfWordGenerator {
 
+  private static final long SEED = 1L;
+
   private final List<String> wordList;
 
   private final List<Double> zipfProbList;
@@ -32,7 +34,7 @@ public class ZipfWordGenerator {
     }
     // shuffle the word list
     Collections.shuffle(wordList);
-    this.random = new Random();
+    this.random = new Random(SEED);
   }
 
   public String getNextWord() {
