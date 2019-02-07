@@ -59,7 +59,7 @@ public class WindowedSamzaVLDBExp {
       stateStorePath = params.get("state_store_path", "");
       blockCacheSize = params.getInt("block_cache_size");
       stateBackend = params.get("state_backend");
-      textFilePath = params.get("text_file_path");
+      textFilePath = params.get("text_file_path", "");
       // cacheSize = params.getInt("cache_size", 0);
       batchWriteSize = params.getInt("batch_write_size");
       batchReadSize = params.getInt("batch_read_size");
@@ -72,7 +72,7 @@ public class WindowedSamzaVLDBExp {
       queryType = params.get("query_type");
       tableFormat = params.get("table_format");
     } catch (final Exception e) {
-      System.err.println("Missing configuration!");
+      System.err.println("Missing configuration!" + e.toString());
       return;
     }
 
