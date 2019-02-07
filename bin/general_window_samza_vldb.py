@@ -78,6 +78,8 @@ elif state_backend == "streamix":
     flink_command_line += [
         "--state_store_path", configs['streamix.path'],
         "--batch_write_size", str(configs['streamix.batch_write_size']),
+        "--batch_read_size", str(configs['streamix.batch_read_size']),
+        "--cached_ratio", str(configs['streamix.cached_ratio']),
         "--file_num", str(configs['streamix.file_num'])
     ]
 

@@ -41,11 +41,11 @@ public class WindowedSamzaVLDBExp {
     final String stateStorePath;
     final Integer blockCacheSize;
     final String textFilePath;
-    final String cacheOption;
-    final Integer cacheSize;
     final Integer batchWriteSize;
+    final Integer batchReadSize;
     final Integer writeBufferSize;
     final Integer fileNum;
+    final Double cachedRatio;
     final Integer windowSize;
     final Integer windowInterval;
     final Integer sessionGap;
@@ -57,13 +57,15 @@ public class WindowedSamzaVLDBExp {
       zookeeperAddress = params.get("zookeeper_address", "");
       dbPath = params.get("rocksdb_path", "");
       stateStorePath = params.get("state_store_path", "");
-      blockCacheSize = params.getInt("block_cache_size", 0);
+      blockCacheSize = params.getInt("block_cache_size");
       stateBackend = params.get("state_backend");
       textFilePath = params.get("text_file_path");
-      cacheSize = params.getInt("cache_size", 0);
-      batchWriteSize = params.getInt("batch_write_size", 0);
-      writeBufferSize = params.getInt("write_buffer_size", 0);
-      fileNum = params.getInt("file_num", 1);
+      // cacheSize = params.getInt("cache_size", 0);
+      batchWriteSize = params.getInt("batch_write_size");
+      batchReadSize = params.getInt("batch_read_size");
+      writeBufferSize = params.getInt("write_buffer_size");
+      fileNum = params.getInt("file_num");
+      cachedRatio = params.getDouble("cached_ratio");
       windowSize = params.getInt("window_size", -1);
       windowInterval = params.getInt("window_interval", -1);
       sessionGap = params.getInt("session_gap", -1);
@@ -128,7 +130,9 @@ public class WindowedSamzaVLDBExp {
       env.setStateBackend(new StreamixStateBackend(
           stateStorePath,
           batchWriteSize,
-          fileNum
+          fileNum,
+          cachedRatio,
+          batchReadSize
       ));
     } else {
       throw new IllegalArgumentException("The state backend should be one of rocksdb / streamix / mem");
