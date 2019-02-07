@@ -83,7 +83,7 @@ elif state_backend == "streamix":
         "--file_num", str(configs['streamix.file_num'])
     ]
 
-print("Submit the query the flink")
+print("Submit the query the flink. Command line = " + flink_command_line)
 # Submit the query to flink
 submit_query = subprocess.Popen(flink_command_line)
 time.sleep(5)
