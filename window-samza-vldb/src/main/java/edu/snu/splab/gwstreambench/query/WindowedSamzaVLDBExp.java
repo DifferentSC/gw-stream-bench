@@ -51,6 +51,7 @@ public class WindowedSamzaVLDBExp {
     final Integer sessionGap;
     final String queryType;
     final String tableFormat;
+    final Integer parallelism;
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address", "");
@@ -71,6 +72,7 @@ public class WindowedSamzaVLDBExp {
       sessionGap = params.getInt("session_gap", -1);
       queryType = params.get("query_type");
       tableFormat = params.get("table_format");
+      parallelism = params.getInt("parallelism");
     } catch (final Exception e) {
       System.err.println("Missing configuration!" + e.toString());
       return;
@@ -78,6 +80,7 @@ public class WindowedSamzaVLDBExp {
 
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    env.setParallelism(parallelism);
     // Set the state backend.
     if (stateBackend.startsWith("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");

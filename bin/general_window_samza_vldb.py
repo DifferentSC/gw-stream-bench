@@ -41,6 +41,7 @@ value_margin = int(configs['source.value.margin'])
 time_wait = int(configs['exp.wait_time'])
 time_running = int(configs['exp.running_time'])
 backpressure_threshold = float(configs['exp.backpressure_threshold'])
+parallelism = int(configs['exp.parallelism'])
 
 query = configs['query']
 state_backend = configs['state_backend']
@@ -52,7 +53,8 @@ flink_command_line = [
     "--broker_address", kafka_address,
     "--zookeeper_address", zookeeper_address,
     "--query_type", str(query),
-    "--state_backend", state_backend
+    "--state_backend", state_backend,
+    "--parallelism", str(parallelism)
 ]
 
 if query == "session-window":
