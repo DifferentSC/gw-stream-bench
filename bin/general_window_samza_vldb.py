@@ -111,7 +111,7 @@ for vertex in vertices:
 
 print("Vertices ID = %s" % vertices_id_list)
 
-current_event_rate = rate_init - rate_increase
+current_event_rate = rate_init
 success = True
 
 source_command_line_prefix = [
@@ -196,7 +196,7 @@ try:
                                             "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
                 backpressure_map[vertex_id].append(backpressure)
                 print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-            time.sleep(5)
+            time.sleep(2.5)
 
         total_backpressure_list = ["ok"] * backpressure_num
 
