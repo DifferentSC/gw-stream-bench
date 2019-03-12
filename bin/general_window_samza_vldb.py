@@ -153,7 +153,6 @@ source_process = None
 
 # Monitor backpressure to initiate sampling
 backpressure_map = {}
-end_timestamp_map = {}
 
 for vertex_id in vertices_id_list:
     backpressure = requests.get(flink_api_address +
@@ -164,13 +163,11 @@ for vertex_id in vertices_id_list:
         backpressure = requests.get(flink_api_address +
                                     "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
     backpressure_map[vertex_id] = []
-    end_timestamp_map[vertex_id] = 0
 
-success = True
+status = "pass"
 
 try:
-    while success:
-        current_event_rate += rate_increase
+    while status != "fail":
         print("Current Thp = %d" % current_event_rate)
         requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
@@ -191,40 +188,55 @@ try:
         start_time = time.time()
         current_backpressure_timestamp = 0
 
+        backpressure_num = 0
         while time.time() - start_time < time_running:
+            backpressure_num += 1
             for vertex_id in vertices_id_list:
                 backpressure = requests.get(flink_api_address +
                                             "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-                if backpressure['end-timestamp'] > end_timestamp_map[vertex_id]:
-                    backpressure_map[vertex_id].append(backpressure)
-                    print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-                    end_timestamp_map[vertex_id] = backpressure['end-timestamp']
-            time.sleep(1)
+                backpressure_map[vertex_id].append(backpressure)
+                print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
+            time.sleep(5)
 
-        success = True
+        total_backpressure_list = ["ok"] * backpressure_num
+
+        # success = True
         for vertex_id in vertices_id_list:
             high_backpressure_count = 0
+            index = 0
             for backpressure in backpressure_map[vertex_id]:
                 if backpressure['backpressure-level'] == 'high':
-                    high_backpressure_count += 1
-            if high_backpressure_count == len(backpressure_map[vertex_id]):
-                success = False
-                print("high backpressure count: %d, which is bigger than %d"
-                      % (high_backpressure_count, len(backpressure_map[vertex_id]) * backpressure_threshold))
-            # Initialize the backpressure & timestamp map
+                    total_backpressure_list[index] = 'high'
+                elif backpressure['backpressure-level'] == 'low':
+                    if total_backpressure_list[index] == 'ok':
+                        total_backpressure_list[index] = 'low'
+                index += 1
+
+            # Initialize the backpressure map
             backpressure_map[vertex_id] = []
-            end_timestamp_map[vertex_id] = 0
+
+        is_backpressure_high_list = map(lambda x: x == 'high', total_backpressure_list)
+        if reduce(lambda x, y: x and y, is_backpressure_high_list):
+            status = "fail"
+        elif is_backpressure_high_list[backpressure_num - 1]:
+            status = "hold"
+        else:
+            status = "pass"
+            current_event_rate += rate_increase
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
         source_process = None
 
-        if success:
+        if status == "fail":
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
+                          json={"text": "Eval *failed* at thp = %d :)" % current_event_rate})
+        elif status == "hold":
+            requests.post(slack_webhook_url,
+                          json={"text": "Eval *held* at thp = %d :)" % current_event_rate})
         else:
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
+                          json={"text": "Eval *passed* at thp = %d T.T" % current_event_rate})
 
 except:
     print("Killing the source process and the flink job...")
