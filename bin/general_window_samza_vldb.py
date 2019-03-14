@@ -4,6 +4,7 @@ import subprocess
 import time
 import os, signal
 import requests
+import numpy as np
 
 configs = None
 
@@ -256,10 +257,18 @@ try:
                 except ValueError:
                     pass
 
-        latency_list.sort()
         if len(latency_list) == 0:
             print("Cannot read latencies...!")
             raise ValueError
+
+        # Determine continuous increasing pattern with linear regression
+        time_step = float(time_running) / float(len(latency_list))
+        time = np.arange(0, time_running, time_step)
+
+        start_time = time.time()
+        scope, y_intercept = np.linalg.lstsq(np.array(latency_list), time)[0]
+        print("Regression time = %f" % (time.time() - start_time))
+        latency_list.sort()
 
         p50latency = latency_list[int(len(latency_list) * 0.5)]
         p95latency = latency_list[int(len(latency_list) * 0.95)]
@@ -271,8 +280,8 @@ try:
         else:
             status = "pass"
 
-        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d" %
-                                                       (p50latency, p95latency)})
+        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, scope = %d" %
+                                                       (p50latency, p95latency, scope)})
         if status == "fail":
             requests.post(slack_webhook_url,
                           json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
