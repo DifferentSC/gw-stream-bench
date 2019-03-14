@@ -57,10 +57,13 @@ flink_command_line = [
     "--parallelism", str(parallelism)
 ]
 
+latency_deadline = 0
+
 if query == "session-window":
     flink_command_line += [
         "--session_gap", str(configs['query.window.session.gap'])
     ]
+    latency_deadline = configs['query.window.session.gap'] * 1.5
 
 else:
     flink_command_line += [
@@ -165,6 +168,7 @@ for vertex_id in vertices_id_list:
     backpressure_map[vertex_id] = []
 
 status = "pass"
+fail_count = 0
 
 try:
     while status != "fail":
@@ -186,8 +190,21 @@ try:
         # sink_process = subprocess.call(sink_command_line)
 
         start_time = time.time()
-        current_backpressure_timestamp = 0
+        # current_backpressure_timestamp = 0
 
+        with open("latency_log.txt", "w") as latency_log_file:
+            sink_command_line = [
+                "/home/ubuntu/kafka_2.11-0.11.0.3/bin/kafka-consumer.sh",
+                "--bootstrap-server",
+                kafka_address,
+                "--topic",
+                "result",
+            ]
+            sink_process = subprocess.Popen(sink_command_line, stdout=latency_log_file)
+            while time.time() - start_time < time_running:
+                time.sleep(1)
+
+        """
         backpressure_num = 0
         while time.time() - start_time < time_running:
             backpressure_num += 1
@@ -222,21 +239,54 @@ try:
             status = "hold"
         else:
             status = "pass"
-            current_event_rate += rate_increase
+        """
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
         source_process = None
+        # Kill the sink process
+        os.kill(sink_process.pid)
+        sink_process = None
 
+        latency_list = []
+        with open("latency_log.txt", "r") as latency_log_file:
+            for line in latency_log_file:
+                value_string = line.strip()
+                try:
+                    latency = int(value_string)
+                    latency_list.append(latency)
+                except ValueError:
+                    pass
+
+        latency_list.sort()
+        if len(latency_list) == 0:
+            print("Cannot read latencies...!")
+            raise ValueError
+
+        p50latency = latency_list[int(len(latency_list) * 0.5)]
+        p95latency = latency_list[int(len(latency_list) * 0.95)]
+
+        if p95latency > latency_deadline and fail_count < 3:
+            status = "hold"
+        elif p95latency > latency_deadline and fail_count >= 3:
+            status = "fail"
+        else:
+            status = "pass"
+
+        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d" %
+                                                       (p50latency, p95latency)})
         if status == "fail":
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *failed* at thp = %d :)" % current_event_rate})
+                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
         elif status == "hold":
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *held* at thp = %d :)" % current_event_rate})
+                          json={"text": "Eval *held* at thp = %d :|" % current_event_rate})
+            fail_count += 1
         else:
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *passed* at thp = %d T.T" % current_event_rate})
+                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
+            current_event_rate += rate_increase
+            fail_count = 0
 
 except:
     print("Killing the source process and the flink job...")
