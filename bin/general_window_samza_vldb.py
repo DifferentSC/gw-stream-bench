@@ -263,13 +263,13 @@ try:
 
         # Determine continuous increasing pattern with linear regression
         time_step = float(time_running) / float(len(latency_list))
-        times = np.arange(0, time_running, time_step)
+        times = np.arange(0., time_running, time_step)
 
         start_time = time.time()
 
         slope, y_intercept = np.linalg.lstsq(
-            np.vstack([np.array(latency_list), np.ones(len(latency_list))]).T,
-            times)[0]
+            np.vstack([np.array(times), np.ones(len(times))]).T,
+            latency_list)[0]
         print("Regression time = %f" % (time.time() - start_time))
         latency_list.sort()
 
