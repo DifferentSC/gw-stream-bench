@@ -42,6 +42,7 @@ time_wait = int(configs['exp.wait_time'])
 time_running = int(configs['exp.running_time'])
 backpressure_threshold = float(configs['exp.backpressure_threshold'])
 parallelism = int(configs['exp.parallelism'])
+latency_deadline = int(configs['exp.latency_deadline'])
 
 query = configs['query']
 state_backend = configs['state_backend']
@@ -57,13 +58,10 @@ flink_command_line = [
     "--parallelism", str(parallelism)
 ]
 
-latency_deadline = 0
-
 if query == "session-window":
     flink_command_line += [
         "--session_gap", str(configs['query.window.session.gap'])
     ]
-    latency_deadline = configs['query.window.session.gap'] * 1.5
 
 else:
     flink_command_line += [
