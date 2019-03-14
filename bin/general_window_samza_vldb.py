@@ -283,7 +283,7 @@ try:
         else:
             status = "pass"
 
-        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %d" %
+        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %f" %
                                                        (p50latency, p95latency, slope)})
         if status == "fail":
             requests.post(slack_webhook_url,
