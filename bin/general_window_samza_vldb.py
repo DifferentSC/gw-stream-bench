@@ -264,9 +264,9 @@ try:
         p50latency = latency_list[int(len(latency_list) * 0.5)]
         p95latency = latency_list[int(len(latency_list) * 0.95)]
 
-        if p95latency > latency_deadline and fail_count < 3:
+        if p95latency > latency_deadline and fail_count < 2:
             status = "hold"
-        elif p95latency > latency_deadline and fail_count >= 3:
+        elif p95latency > latency_deadline and fail_count >= 2:
             status = "fail"
         else:
             status = "pass"
