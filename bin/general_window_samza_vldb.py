@@ -267,7 +267,9 @@ try:
 
         start_time = time.time()
 
-        slope, y_intercept = np.linalg.lstsq(np.array(latency_list), times)[0]
+        slope, y_intercept = np.linalg.lstsq(
+            np.vstack([np.array(latency_list), np.ones(len(latency_list))]).T,
+            times)[0]
         print("Regression time = %f" % (time.time() - start_time))
         latency_list.sort()
 
