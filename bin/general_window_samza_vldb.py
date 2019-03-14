@@ -245,7 +245,7 @@ try:
         os.kill(source_process.pid, signal.SIGKILL)
         source_process = None
         # Kill the sink process
-        os.kill(sink_process.pid)
+        os.kill(sink_process.pid, signal.SIGKILL)
         sink_process = None
 
         latency_list = []
