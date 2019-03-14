@@ -266,7 +266,7 @@ try:
         time = np.arange(0, time_running, time_step)
 
         start_time = time.time()
-        scope, y_intercept = np.linalg.lstsq(np.array(latency_list), time)[0]
+        slope, y_intercept = np.linalg.lstsq(np.array(latency_list), time)[0]
         print("Regression time = %f" % (time.time() - start_time))
         latency_list.sort()
 
@@ -280,8 +280,8 @@ try:
         else:
             status = "pass"
 
-        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, scope = %d" %
-                                                       (p50latency, p95latency, scope)})
+        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %d" %
+                                                       (p50latency, p95latency, slope)})
         if status == "fail":
             requests.post(slack_webhook_url,
                           json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
