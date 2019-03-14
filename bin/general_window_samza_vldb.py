@@ -194,7 +194,7 @@ try:
 
         with open("latency_log.txt", "w") as latency_log_file:
             sink_command_line = [
-                "/home/ubuntu/kafka_2.11-0.11.0.3/bin/kafka-consumer.sh",
+                "/home/ubuntu/kafka_2.11-0.11.0.3/bin/kafka-console-consumer.sh",
                 "--bootstrap-server",
                 kafka_address,
                 "--topic",
