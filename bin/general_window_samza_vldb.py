@@ -43,7 +43,8 @@ time_wait = int(configs['exp.wait_time'])
 time_running = int(configs['exp.running_time'])
 backpressure_threshold = float(configs['exp.backpressure_threshold'])
 parallelism = int(configs['exp.parallelism'])
-latency_deadline = int(configs['exp.latency_deadline'])
+# latency_deadline = int(configs['exp.latency_deadline'])
+slope_threshold = 10
 
 query = configs['query']
 state_backend = configs['state_backend']
@@ -263,28 +264,31 @@ try:
 
         # Determine continuous increasing pattern with linear regression
         time_step = float(time_running) / float(len(latency_list))
-        times = np.arange(0., time_running, time_step)
-
-        start_time = time.time()
+        current_time = 0
+        times = []
+        for i in range(0, len(latency_list)):
+            times.append(current_time)
+            current_time += time_step
 
         slope, y_intercept = np.linalg.lstsq(
             np.vstack([np.array(times), np.ones(len(times))]).T,
             latency_list)[0]
-        print("Regression time = %f" % (time.time() - start_time))
         latency_list.sort()
 
         p50latency = latency_list[int(len(latency_list) * 0.5)]
         p95latency = latency_list[int(len(latency_list) * 0.95)]
 
-        if p95latency > latency_deadline and fail_count < 2:
+        if slope > slope_threshold and fail_count < 2:
             status = "hold"
-        elif p95latency > latency_deadline and fail_count >= 2:
+        elif slope > slope_threshold and fail_count >= 2:
             status = "fail"
         else:
             status = "pass"
 
         requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %f" %
                                                        (p50latency, p95latency, slope)})
+        print("P50 latency = %d, P95 latency = %d, slope = %f" % (p50latency, p95latency, slope))
+
         if status == "fail":
             requests.post(slack_webhook_url,
                           json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
