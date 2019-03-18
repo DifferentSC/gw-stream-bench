@@ -18,6 +18,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
+
 import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
@@ -81,6 +82,9 @@ public class WindowedSamzaVLDBExp {
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(parallelism);
+    env.getConfig()
+        .enableObjectReuse();
+
     // Set the state backend.
     if (stateBackend.startsWith("rocksdb")) {
       final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
@@ -190,10 +194,13 @@ public class WindowedSamzaVLDBExp {
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
+            private final Tuple3<Integer, String, Long> result = new Tuple3<>();
             public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
               String[] splitLine = value.split("\\s");
-              out.collect(new Tuple3<>(Integer.valueOf(splitLine[0]), splitLine[1],
-                  Long.valueOf(splitLine[2])));
+              result.f0 = Integer.valueOf(splitLine[0]);
+              result.f1 = splitLine[1];
+              result.f2 = Long.valueOf(splitLine[2]);
+              out.collect(result);
             }
           })
           .keyBy(0)
@@ -211,10 +218,13 @@ public class WindowedSamzaVLDBExp {
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
+            private final Tuple3<Integer, String, Long> result = new Tuple3<>();
             public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
               String[] splitLine = value.split("\\s");
-              out.collect(new Tuple3<>(Integer.valueOf(splitLine[0]), splitLine[1],
-                  Long.valueOf(splitLine[2])));
+              result.f0 = Integer.valueOf(splitLine[0]);
+              result.f1 = splitLine[1];
+              result.f2 = Long.valueOf(splitLine[2]);
+              out.collect(result);
             }
           })
           .keyBy(0)

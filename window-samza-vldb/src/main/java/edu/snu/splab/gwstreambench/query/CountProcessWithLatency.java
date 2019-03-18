@@ -14,6 +14,8 @@ public class CountProcessWithLatency
     extends ProcessWindowFunction<Tuple3<Integer, String, Long>, Tuple4<Integer, Integer, String, Long>,
     Tuple, TimeWindow>  {
 
+  final Tuple4<Integer, Integer, String, Long> result = new Tuple4<>();
+
   @Override
   public void process(Tuple key,
                       Context context,
@@ -31,6 +33,7 @@ public class CountProcessWithLatency
       }
     }
     int intKey = key.getField(0);
-    collector.collect(new Tuple4<>(intKey, count, margin, maxTimestamp));
+    result.setFields(intKey, count, margin, maxTimestamp);
+    collector.collect(result);
   }
 }
