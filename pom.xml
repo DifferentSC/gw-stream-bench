@@ -12,6 +12,7 @@
         <module>samza-vldb-simul</module>
         <module>source-sink</module>
         <module>window-samza-vldb</module>
+        <module>window-event-time</module>
     </modules>
 
     <properties>
