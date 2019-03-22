@@ -1,6 +1,7 @@
 package edu.snu.splab.gwstreambench.query;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -65,15 +66,15 @@ public class EventTimeWindowExp {
                 .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator());
 
 
-        DataStream<String> str = withWatermarks.flatMap(new FlatMapFunction<Tuple3<Integer, String, Long>, String>() {
-            public void flatMap(Tuple3<Integer, String, Long> value, Collector<String> out) {
+        DataStream<String> str = withWatermarks.map(new MapFunction<Tuple3<Integer, String, Long>, String>() {
+            public String map(Tuple3<Integer, String, Long> value) {
                 final String result;
                 if (System.currentTimeMillis() - value.f2 >= 1000) {
                     result = ":)";
                 } else {
                     result = ":(";
                 }
-                out.collect(result);
+                return result;
             }
         });
 ;
