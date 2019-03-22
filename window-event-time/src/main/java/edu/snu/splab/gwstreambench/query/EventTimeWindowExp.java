@@ -59,14 +59,11 @@ public class EventTimeWindowExp {
                         out.collect(result);
                     }
                 })
+                .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                 .keyBy(0);
 
-        //generate watermark
-        DataStream<Tuple3<Integer, String, Long>> withWatermarks = tuples
-                .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator());
 
-
-        DataStream<String> str = withWatermarks.map(new MapFunction<Tuple3<Integer, String, Long>, String>() {
+        DataStream<String> str = tuples.map(new MapFunction<Tuple3<Integer, String, Long>, String>() {
             public String map(Tuple3<Integer, String, Long> value) {
                 final String result;
                 final long timeLag = System.currentTimeMillis() - value.f2;
