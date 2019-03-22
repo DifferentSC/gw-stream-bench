@@ -2,17 +2,22 @@ package edu.snu.splab.gwstreambench.query;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.watermark.Watermark;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.streams.kstream.internals.TimeWindow;
 
 import java.util.Properties;
 
@@ -60,7 +65,18 @@ public class EventTimeWindowExp {
                     }
                 })
                 .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
-                .keyBy(0);
+                .keyBy(0)
+                .timeWindow(Time.seconds(10), Time.seconds(5))
+                .reduce(new ReduceFunction<Tuple3<Integer, String, Long>>() {
+                    @Override
+                    public Tuple3<Integer, String, Long> reduce(Tuple3<Integer, String, Long> t1, Tuple3<Integer, String, Long> t2) throws Exception {
+                        if (t1.f2 < t2.f2) {
+                            return t2;
+                        } else {
+                            return t1;
+                        }
+                    }
+                });
 
 
         DataStream<String> str = tuples.map(new MapFunction<Tuple3<Integer, String, Long>, String>() {
