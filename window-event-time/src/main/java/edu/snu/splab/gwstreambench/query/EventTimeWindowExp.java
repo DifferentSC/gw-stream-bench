@@ -64,10 +64,18 @@ public class EventTimeWindowExp {
         DataStream<Tuple3<Integer, String, Long>> withWatermarks = tuples
                 .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator());
 
+
         DataStream<String> str = withWatermarks.flatMap(new FlatMapFunction<Tuple3<Integer, String, Long>, String>() {
             private String result;
+            Long min_timeStamp=Long.MAX_VALUE, max_timeStamp= Long.valueOf(0);
             public void flatMap(Tuple3<Integer, String, Long> value, Collector<String> out) {
-                result=value.f0.toString()+value.f1+value.f2.toString();
+                if(min_timeStamp>value.f2) min_timeStamp=value.f2;
+                if(max_timeStamp<value.f2) max_timeStamp=value.f2;
+
+                String tmp;
+                if(max_timeStamp - min_timeStamp <1000) tmp="  :)";
+                else    tmp="  :(";
+                result=value.f0.toString()+value.f1+value.f2.toString()+tmp;
                 out.collect(result);
             }
         });
