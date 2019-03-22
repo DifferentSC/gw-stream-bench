@@ -69,12 +69,13 @@ public class EventTimeWindowExp {
         DataStream<String> str = withWatermarks.map(new MapFunction<Tuple3<Integer, String, Long>, String>() {
             public String map(Tuple3<Integer, String, Long> value) {
                 final String result;
-                if (System.currentTimeMillis() - value.f2 >= 1000) {
+                final long timeLag = System.currentTimeMillis() - value.f2;
+                if (timeLag >= 1000) {
                     result = ":)";
                 } else {
                     result = ":(";
                 }
-                return result;
+                return result + " " + timeLag;
             }
         });
 ;
