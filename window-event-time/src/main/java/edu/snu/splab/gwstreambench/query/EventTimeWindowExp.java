@@ -71,9 +71,9 @@ public class EventTimeWindowExp {
                     @Override
                     public Tuple3<Integer, String, Long> reduce(Tuple3<Integer, String, Long> t1, Tuple3<Integer, String, Long> t2) throws Exception {
                         if (t1.f2 < t2.f2) {
-                            return t2;
+                            return t2.copy();
                         } else {
-                            return t1;
+                            return t1.copy();
                         }
                     }
                 });
