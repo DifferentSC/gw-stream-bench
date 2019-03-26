@@ -60,12 +60,12 @@ sink_command_line = [
     "result",
 ]
 
-#run
-source_process=subprocess.Popen(source_command_line)
-
 flink_process=subprocess.Popen(flink_command_line)
 
 time.sleep(5)
+
+#run
+source_process=subprocess.Popen(source_command_line)
 
 #get flink jobs
 jobs=requests.get(flink_api_address+"/jobs").json()["jobs"]
@@ -79,13 +79,12 @@ if len(job_id_list) > 1:
     print("There are %d jobs running. Terminate others before start" % len(job_id_list))
     exit(0)
 
+time.sleep(10)
+
 with open("latency_log.txt", "w") as latency_log_file:
     sink_process = subprocess.Popen(sink_command_line, stdout=latency_log_file)
 
 time.sleep(60)
-os.kill(source_process.pid, signal.SIGKILL)
-# os.kill(flink_process.pid, signal.SIGKILL)
-os.kill(sink_process.pid, signal.SIGKILL)
 
 if source_process is not None:
     os.kill(source_process.pid, signal.SIGKILL)
