@@ -1,0 +1,50 @@
+# Flink
+flink.api.address: http://172.31.22.37:8081
+
+# Kafka
+kafka.server.address: 172.31.22.37:9092
+kafka.zookeeper.address: 172.31.22.37:2181
+
+# event generation
+source.key.num: 100000
+source.key.skewness: 0.0
+source.value.margin: 100
+source.rate.init: 200000
+
+source.rate.increase: 10000
+source.timer.threads.num: 16
+
+# source-session
+source.session.average_term: 100
+source.session.gap: 15
+
+# query
+query: session-window
+query.window.session.gap: 10
+#query.window.size: 100
+#query.window.interval: 50
+
+# measurement
+exp.wait_time: 150
+exp.running_time: 50
+exp.backpressure_threshold: 1.0
+exp.parallelism: 16
+exp.latency_deadline: 15000
+
+# state backend
+state_backend: streamix
+#state_backend: rocksdb
+
+# rocksdb confs
+rocksdb.path: /nvme
+rocksdb.block_cache_size: 2048
+rocksdb.write_buffer_size: 128
+rocksdb.table_format: block
+
+# streamix confs
+streamix.path: /nvme
+streamix.batch_write_size: 1048576
+streamix.batch_read_size: 262144
+streamix.cached_ratio: 0.2
+streamix.file_num: 4
+

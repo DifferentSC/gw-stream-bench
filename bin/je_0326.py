@@ -2,6 +2,7 @@ import argparse
 import yaml
 import subprocess
 import time
+import os, signal
 
 configs = None
 
@@ -36,6 +37,7 @@ source_command_line = [
     "-k", str(key_num),
     "-m", str(value_margin),
     "-t", str(timer_threads_num),
+    "-r", str(rate_init),
     "-w", "uniform"
 ]
 
@@ -62,4 +64,7 @@ flink_process=subprocess.Popen(flink_command_line)
 with open("latency_log.txt", "w") as latency_log_file:
     sink_process = subprocess.Popen(sink_command_line, stdout=latency_log_file)
 
-time.sleep(100)
+time.sleep(60)
+os.kill(source_process.pid, signal.SIGKILL)
+# os.kill(flink_process.pid, signal.SIGKILL)
+os.kill(sink_process.pid, signal.SIGKILL)
