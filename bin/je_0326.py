@@ -32,18 +32,6 @@ key_num = int(configs['source.key.num'])
 key_skewness = float(configs['source.key.skewness'])
 value_margin = int(configs['source.value.margin'])
 
-#get flink jobs
-jobs=requests.get(flink_api_address+"/jobs").json()["jobs"]
-job_id_list = []
-for job in jobs:
-    if job['status'] == 'RUNNING':
-        job_id_list.append(job['id'])
-
-#shut down jobs if there's more than 1 job
-if len(job_id_list) > 1:
-    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
-    exit(0)
-
 #Configure command line
 source_command_line = [
     "java", "-cp",
@@ -76,6 +64,20 @@ sink_command_line = [
 source_process=subprocess.Popen(source_command_line)
 
 flink_process=subprocess.Popen(flink_command_line)
+
+time.sleep(5)
+
+#get flink jobs
+jobs=requests.get(flink_api_address+"/jobs").json()["jobs"]
+job_id_list = []
+for job in jobs:
+    if job['status'] == 'RUNNING':
+        job_id_list.append(job['id'])
+
+#shut down jobs if there's more than 1 job
+if len(job_id_list) > 1:
+    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
+    exit(0)
 
 with open("latency_log.txt", "w") as latency_log_file:
     sink_process = subprocess.Popen(sink_command_line, stdout=latency_log_file)
