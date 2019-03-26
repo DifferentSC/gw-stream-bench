@@ -3,6 +3,7 @@ import yaml
 import subprocess
 import time
 import os, signal
+import requests
 
 configs = None
 
@@ -17,6 +18,9 @@ with open(args.config_file_path, "r") as stream:
 # Print the read configurations
 print(configs)
 
+#flink settings
+flink_api_address = configs['flink.api.address']
+
 # kafka settings
 kafka_address = configs['kafka.server.address']
 zookeeper_address = configs['kafka.zookeeper.address']
@@ -27,6 +31,18 @@ timer_threads_num = int(configs['source.timer.threads.num'])
 key_num = int(configs['source.key.num'])
 key_skewness = float(configs['source.key.skewness'])
 value_margin = int(configs['source.value.margin'])
+
+#get flink jobs
+jobs=requests.get(flink_api_address+"/jobs").json()["jobs"]
+job_id_list = []
+for job in jobs:
+    if job['status'] == 'RUNNING':
+        job_id_list.append(job['id'])
+
+#shut down jobs if there's more than 1 job
+if len(job_id_list) > 1:
+    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
+    exit(0)
 
 #Configure command line
 source_command_line = [
@@ -68,3 +84,13 @@ time.sleep(60)
 os.kill(source_process.pid, signal.SIGKILL)
 # os.kill(flink_process.pid, signal.SIGKILL)
 os.kill(sink_process.pid, signal.SIGKILL)
+
+if source_process is not None:
+    os.kill(source_process.pid, signal.SIGKILL)
+if sink_process is not None:
+    os.kill(sink_process.pid, signal.SIGKILL)
+
+job_id = job_id_list[0]
+print("Job ID = %s" % job_id)
+
+requests.patch(flink_api_address + "/jobs/" + job_id)
