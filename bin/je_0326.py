@@ -16,7 +16,7 @@ with open(args.config_file_path, "r") as stream:
     configs = yaml.load(stream)
 
 # Print the read configurations
-print(configs)
+#print(configs)
 
 # flink settings
 flink_api_address = configs['flink.api.address']
@@ -42,8 +42,8 @@ parallelism = int(configs['exp.parallelism'])
 slope_threshold = 10
 
 #event time settings
-watermarkInterval = int(configs['watermark_interval'])
-maxTimeLag = int(configs['max_timelag'])
+watermarkInterval = int(configs['streamix.watermark_interval'])
+maxTimeLag = int(configs['streamix.max_timelag'])
 
 query = configs['query']
 state_backend = configs['state_backend']
@@ -56,7 +56,9 @@ flink_command_line = [
     "--zookeeper_address", zookeeper_address,
     "--query_type", str(query),
     "--state_backend", state_backend,
-    "--parallelism", str(parallelism)
+    "--parallelism", str(parallelism),
+    "--watermark_interval", str(watermarkInterval),
+    "--max_time_lag", str(maxTimeLag)
 ]
 
 if query == "session-window":
@@ -151,7 +153,21 @@ sink_command_line = [
 ]
 """
 
+
 source_process = None
+
+# Monitor backpressure to initiate sampling
+backpressure_map = {}
+
+for vertex_id in vertices_id_list:
+    backpressure = requests.get(flink_api_address +
+                                "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+    while backpressure['status'] == 'deprecated':
+        print("Sleep for 5 seconds to get backpressure samples...")
+        time.sleep(5)
+        backpressure = requests.get(flink_api_address +
+                                    "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+    backpressure_map[vertex_id] = []
 
 status = "pass"
 fail_count = 0
@@ -190,7 +206,42 @@ try:
             while time.time() - start_time < time_running:
                 time.sleep(1)
 
+        """
+        backpressure_num = 0
+        while time.time() - start_time < time_running:
+            backpressure_num += 1
+            for vertex_id in vertices_id_list:
+                backpressure = requests.get(flink_api_address +
+                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+                backpressure_map[vertex_id].append(backpressure)
+                print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
+            time.sleep(2.5)
 
+        total_backpressure_list = ["ok"] * backpressure_num
+
+        # success = True
+        for vertex_id in vertices_id_list:
+            high_backpressure_count = 0
+            index = 0
+            for backpressure in backpressure_map[vertex_id]:
+                if backpressure['backpressure-level'] == 'high':
+                    total_backpressure_list[index] = 'high'
+                elif backpressure['backpressure-level'] == 'low':
+                    if total_backpressure_list[index] == 'ok':
+                        total_backpressure_list[index] = 'low'
+                index += 1
+
+            # Initialize the backpressure map
+            backpressure_map[vertex_id] = []
+
+        is_backpressure_high_list = map(lambda x: x == 'high', total_backpressure_list)
+        if reduce(lambda x, y: x and y, is_backpressure_high_list):
+            status = "fail"
+        elif is_backpressure_high_list[backpressure_num - 1]:
+            status = "hold"
+        else:
+            status = "pass"
+        """
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
@@ -236,22 +287,6 @@ try:
         else:
             status = "pass"
 
-        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %f" %
-                                                       (p50latency, p95latency, slope)})
-        print("P50 latency = %d, P95 latency = %d, slope = %f" % (p50latency, p95latency, slope))
-
-        if status == "fail":
-            requests.post(slack_webhook_url,
-                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
-        elif status == "hold":
-            requests.post(slack_webhook_url,
-                          json={"text": "Eval *held* at thp = %d :|" % current_event_rate})
-            fail_count += 1
-        else:
-            requests.post(slack_webhook_url,
-                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
-            current_event_rate += rate_increase
-            fail_count = 0
 
 except:
     print("Killing the source process and the flink job...")
@@ -259,8 +294,6 @@ except:
         os.kill(source_process.pid, signal.SIGKILL)
     requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
-    requests.post(slack_webhook_url,
-                  json={"text": "Evaluation interrupted!"})
     raise
 
 print("Killing the flink job...")

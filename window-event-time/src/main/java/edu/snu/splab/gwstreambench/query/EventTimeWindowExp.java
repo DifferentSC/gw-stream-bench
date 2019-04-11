@@ -57,25 +57,29 @@ public class EventTimeWindowExp {
             final ParameterTool params = ParameterTool.fromArgs(args);
             brokerAddress = params.get("broker_address", "");
             zookeeperAddress = params.get("zookeeper_address", "");
-            dbPath = params.get("rocksdb_path", "");
-            stateStorePath = params.get("state_store_path", "");
-            blockCacheSize = params.getInt("block_cache_size", 0);
+            queryType = params.get("query_type");
             stateBackend = params.get("state_backend");
-            textFilePath = params.get("text_file_path", "");
-            // cacheSize = params.getInt("cache_size", 0);
+            parallelism = params.getInt("parallelism");
+            watermarkInterval = params.getInt("watermark_interval");
+            maxTimeLag = params.getLong("max_time_lag");
+
+            //for session window
+            sessionGap = params.getInt("session_gap", -1);
+
+            //for rocksdb
+            dbPath = params.get("rocksdb_path", "");
+            blockCacheSize = params.getInt("block_cache_size", 0);
+            writeBufferSize = params.getInt("write_buffer_size", 0);
+            tableFormat = params.get("table_format");
+
+            //for streamix
+            stateStorePath = params.get("state_store_path", "");
             batchWriteSize = params.getInt("batch_write_size", 0);
             batchReadSize = params.getInt("batch_read_size", 0);
-            writeBufferSize = params.getInt("write_buffer_size", 0);
-            fileNum = params.getInt("file_num", 1);
             cachedRatio = params.getDouble("cached_ratio", 0.0);
-            windowSize = params.getInt("window_size", -1);
-            windowInterval = params.getInt("window_interval", -1);
-            sessionGap = params.getInt("session_gap", -1);
-            queryType = params.get("query_type");
-            tableFormat = params.get("table_format");
-            parallelism = params.getInt("parallelism");
-            watermarkInterval = params.getInt("watermarkInterval");
-            maxTimeLag = params.getLong("maxTimeLag");
+            fileNum = params.getInt("file_num", 1);
+
+
         }catch(final Exception e){
             System.err.println("Missing configuration!" + e.toString());
             return;
