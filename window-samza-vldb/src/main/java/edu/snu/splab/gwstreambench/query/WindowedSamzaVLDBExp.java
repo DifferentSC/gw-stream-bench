@@ -53,6 +53,7 @@ public class WindowedSamzaVLDBExp {
     final String queryType;
     final String tableFormat;
     final Integer parallelism;
+
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
       brokerAddress = params.get("broker_address", "");
@@ -82,8 +83,7 @@ public class WindowedSamzaVLDBExp {
     // get the execution environment.
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setParallelism(parallelism);
-    env.getConfig()
-        .enableObjectReuse();
+    env.getConfig().enableObjectReuse();
 
     // Set the state backend.
     if (stateBackend.startsWith("rocksdb")) {
