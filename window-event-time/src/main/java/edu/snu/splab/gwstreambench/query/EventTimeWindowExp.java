@@ -29,6 +29,7 @@ import java.util.Properties;
 
 public class EventTimeWindowExp {
 
+    static long maxTimeLag;
     public static final void main(final String[] args) throws Exception {
 
         //params in yaml file
@@ -74,6 +75,7 @@ public class EventTimeWindowExp {
             tableFormat = params.get("table_format");
             parallelism = params.getInt("parallelism");
             watermarkInterval = params.getInt("watermarkInterval");
+            maxTimeLag = params.getLong("maxTimeLag");
         }catch(final Exception e){
             System.err.println("Missing configuration!" + e.toString());
             return;
@@ -193,8 +195,7 @@ public class EventTimeWindowExp {
     }
 
     public static class TimeLagWatermarkGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
-
-        private final long maxTimeLag = 1000; // 1 seconds
+        //private final long maxTimeLag = 1000; // 1 seconds
 
         @Override
         public long extractTimestamp(Tuple3<Integer, String, Long> element, long previousElementTimestamp) {

@@ -43,6 +43,7 @@ slope_threshold = 10
 
 #event time settings
 watermarkInterval = int(configs['watermark_interval'])
+maxTimeLag = int(configs['max_timelag'])
 
 query = configs['query']
 state_backend = configs['state_backend']

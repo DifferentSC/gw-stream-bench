@@ -48,3 +48,4 @@ streamix.file_num: 64
 
 #event time
 watermark_interval: 5000
+max_timelag: 1000
