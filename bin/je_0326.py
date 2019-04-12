@@ -50,12 +50,12 @@ query = configs['query']
 state_backend = configs['state_backend']
 
 #event time settings
-time = configs['time']
+streamix_time = configs['streamix.time']
 watermark_interval = configs['streamix.watermark_interval']
 max_timelag = configs['streamix.max_timelag']
 
 # submit the query firstly to flink
-if time == "event-time":
+if streamix_time == "event-time":
     flink_command_line = [
         "flink", "run",
         "./window-event-time/target/window-event-time-1.0-SNAPSHOT-shaded.jar",

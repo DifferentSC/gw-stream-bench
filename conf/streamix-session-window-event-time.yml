@@ -19,7 +19,7 @@ source.session.average_term: 100
 source.session.gap: 15
 
 # query
-time: event-time
+streamix.time: event-time
 query: session-window
 query.window.session.gap: 10
 #query.window.size: 100
