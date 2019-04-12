@@ -58,7 +58,7 @@ max_timelag = int(configs['streamix.max_timelag'])
 if time == "event-time":
     flink_command_line = [
         "flink", "run",
-        "./window-samza-vldb/target/window-event-time-1.0-SNAPSHOT-shaded.jar",
+        "./window-event-time/target/window-event-time-1.0-SNAPSHOT-shaded.jar",
         "--broker_address", kafka_address,
         "--zookeeper_address", zookeeper_address,
         "--query_type", str(query),
