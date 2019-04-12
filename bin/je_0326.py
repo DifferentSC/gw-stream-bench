@@ -64,8 +64,8 @@ if time == "event-time":
         "--query_type", str(query),
         "--state_backend", state_backend,
         "--parallelism", str(parallelism),
-        "--watermark_interval", watermark_interval,
-        "--max_timelag", max_timelag
+        "--watermark_interval", str(watermark_interval),
+        "--max_timelag", str(max_timelag)
     ]
 else:
     flink_command_line = [
