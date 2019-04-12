@@ -16,7 +16,12 @@ with open(args.config_file_path, "r") as stream:
     configs = yaml.load(stream)
 
 # Print the read configurations
-#print(configs)
+print(configs)
+
+slack_webhook_url = 'https://hooks.slack.com/services/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'
+
+requests.post(slack_webhook_url,
+              json={"text": str(configs)})
 
 # flink settings
 flink_api_address = configs['flink.api.address']
@@ -41,24 +46,37 @@ parallelism = int(configs['exp.parallelism'])
 # latency_deadline = int(configs['exp.latency_deadline'])
 slope_threshold = 10
 
-#event time settings
-watermarkInterval = int(configs['streamix.watermark_interval'])
-maxTimeLag = int(configs['streamix.max_timelag'])
-
 query = configs['query']
 state_backend = configs['state_backend']
 
-flink_command_line = [
-    "flink", "run",
-    "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
-    "--broker_address", kafka_address,
-    "--zookeeper_address", zookeeper_address,
-    "--query_type", str(query),
-    "--state_backend", state_backend,
-    "--parallelism", str(parallelism),
-    "--watermark_interval", str(watermarkInterval),
-    "--max_time_lag", str(maxTimeLag)
-]
+#event time settings
+time = configs['time']
+watermark_interval = int(configs['streamix.watermark_interval'])
+max_timelag = int(configs['streamix.max_timelag'])
+
+# submit the query firstly to flink
+if time == "event-time":
+    flink_command_line = [
+        "flink", "run",
+        "./window-samza-vldb/target/window-event-time-1.0-SNAPSHOT-shaded.jar",
+        "--broker_address", kafka_address,
+        "--zookeeper_address", zookeeper_address,
+        "--query_type", str(query),
+        "--state_backend", state_backend,
+        "--parallelism", str(parallelism),
+        "--watermark_interval", watermark_interval,
+        "--max_timelag", max_timelag
+    ]
+else:
+    flink_command_line = [
+        "flink", "run",
+        "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
+        "--broker_address", kafka_address,
+        "--zookeeper_address", zookeeper_address,
+        "--query_type", str(query),
+        "--state_backend", state_backend,
+        "--parallelism", str(parallelism)
+    ]
 
 if query == "session-window":
     flink_command_line += [
@@ -88,7 +106,7 @@ elif state_backend == "streamix":
         "--file_num", str(configs['streamix.file_num'])
     ]
 
-print("Submit the query to the flink. Command line = " + str(flink_command_line))
+print("Submit the query the flink. Command line = " + str(flink_command_line))
 # Submit the query to flink
 submit_query = subprocess.Popen(flink_command_line)
 time.sleep(5)
@@ -152,7 +170,6 @@ sink_command_line = [
 ]
 """
 
-
 source_process = None
 
 # Monitor backpressure to initiate sampling
@@ -174,19 +191,18 @@ fail_count = 0
 try:
     while status != "fail":
         print("Current Thp = %d" % current_event_rate)
+        requests.post(slack_webhook_url,
+                      json={"text": "Current throughput = %d" % current_event_rate})
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
-
-        # Start the source process
         print("Start source process...")
+        # Start the source process
         print("Source commandline = %s " % str(source_command_line))
         source_process = subprocess.Popen(source_command_line)
-
         # Wait for the designated time
         print("Waiting for %d secs..." % time_wait)
         time.sleep(time_wait)
-
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
         # sink_process = subprocess.call(sink_command_line)
@@ -194,7 +210,6 @@ try:
         start_time = time.time()
         # current_backpressure_timestamp = 0
 
-        # Start the sink process
         with open("latency_log.txt", "w") as latency_log_file:
             sink_command_line = [
                 "/home/ubuntu/kafka_2.11-0.11.0.3/bin/kafka-console-consumer.sh",
@@ -207,6 +222,42 @@ try:
             while time.time() - start_time < time_running:
                 time.sleep(1)
 
+        """
+        backpressure_num = 0
+        while time.time() - start_time < time_running:
+            backpressure_num += 1
+            for vertex_id in vertices_id_list:
+                backpressure = requests.get(flink_api_address +
+                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
+                backpressure_map[vertex_id].append(backpressure)
+                print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
+            time.sleep(2.5)
+
+        total_backpressure_list = ["ok"] * backpressure_num
+
+        # success = True
+        for vertex_id in vertices_id_list:
+            high_backpressure_count = 0
+            index = 0
+            for backpressure in backpressure_map[vertex_id]:
+                if backpressure['backpressure-level'] == 'high':
+                    total_backpressure_list[index] = 'high'
+                elif backpressure['backpressure-level'] == 'low':
+                    if total_backpressure_list[index] == 'ok':
+                        total_backpressure_list[index] = 'low'
+                index += 1
+
+            # Initialize the backpressure map
+            backpressure_map[vertex_id] = []
+
+        is_backpressure_high_list = map(lambda x: x == 'high', total_backpressure_list)
+        if reduce(lambda x, y: x and y, is_backpressure_high_list):
+            status = "fail"
+        elif is_backpressure_high_list[backpressure_num - 1]:
+            status = "hold"
+        else:
+            status = "pass"
+        """
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
@@ -228,9 +279,6 @@ try:
         if len(latency_list) == 0:
             print("Cannot read latencies...!")
             raise ValueError
-
-        print("\n")
-        print(latency_list)
 
         # Determine continuous increasing pattern with linear regression
         time_step = float(time_running) / float(len(latency_list))
@@ -255,6 +303,22 @@ try:
         else:
             status = "pass"
 
+        requests.post(slack_webhook_url, json={"text": "P50 latency = %d, P95 latency = %d, slope = %f" %
+                                                       (p50latency, p95latency, slope)})
+        print("P50 latency = %d, P95 latency = %d, slope = %f" % (p50latency, p95latency, slope))
+
+        if status == "fail":
+            requests.post(slack_webhook_url,
+                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
+        elif status == "hold":
+            requests.post(slack_webhook_url,
+                          json={"text": "Eval *held* at thp = %d :|" % current_event_rate})
+            fail_count += 1
+        else:
+            requests.post(slack_webhook_url,
+                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
+            current_event_rate += rate_increase
+            fail_count = 0
 
 except:
     print("Killing the source process and the flink job...")
@@ -262,6 +326,8 @@ except:
         os.kill(source_process.pid, signal.SIGKILL)
     requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
+    requests.post(slack_webhook_url,
+                  json={"text": "Evaluation interrupted!"})
     raise
 
 print("Killing the flink job...")

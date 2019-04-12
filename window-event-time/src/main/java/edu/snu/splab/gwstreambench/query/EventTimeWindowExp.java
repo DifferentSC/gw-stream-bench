@@ -69,7 +69,7 @@ public class EventTimeWindowExp {
             stateBackend = params.get("state_backend");
             parallelism = params.getInt("parallelism");
             watermarkInterval = params.getInt("watermark_interval");
-            maxTimeLag = params.getLong("max_time_lag");
+            maxTimeLag = params.getLong("max_timelag");
 
             //for session window
             sessionGap = params.getInt("session_gap", -1);
