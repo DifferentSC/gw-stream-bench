@@ -137,7 +137,7 @@ success = True
 
 source_command_line_prefix = [
     "java", "-cp",
-    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
+    "~/source-sink-1.0-SNAPSHOT-shaded.jar",
     "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
     "-b", kafka_address,
     "-k", str(key_num),
