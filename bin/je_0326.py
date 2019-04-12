@@ -48,7 +48,6 @@ maxTimeLag = int(configs['streamix.max_timelag'])
 query = configs['query']
 state_backend = configs['state_backend']
 
-# submit the query firstly to flink
 flink_command_line = [
     "flink", "run",
     "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
@@ -175,18 +174,19 @@ fail_count = 0
 try:
     while status != "fail":
         print("Current Thp = %d" % current_event_rate)
-        requests.post(slack_webhook_url,
-                      json={"text": "Current throughput = %d" % current_event_rate})
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
         ]
-        print("Start source process...")
+
         # Start the source process
+        print("Start source process...")
         print("Source commandline = %s " % str(source_command_line))
         source_process = subprocess.Popen(source_command_line)
+
         # Wait for the designated time
         print("Waiting for %d secs..." % time_wait)
         time.sleep(time_wait)
+
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
         # sink_process = subprocess.call(sink_command_line)
@@ -194,6 +194,7 @@ try:
         start_time = time.time()
         # current_backpressure_timestamp = 0
 
+        # Start the sink process
         with open("latency_log.txt", "w") as latency_log_file:
             sink_command_line = [
                 "/home/ubuntu/kafka_2.11-0.11.0.3/bin/kafka-console-consumer.sh",
@@ -206,42 +207,6 @@ try:
             while time.time() - start_time < time_running:
                 time.sleep(1)
 
-        """
-        backpressure_num = 0
-        while time.time() - start_time < time_running:
-            backpressure_num += 1
-            for vertex_id in vertices_id_list:
-                backpressure = requests.get(flink_api_address +
-                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-                backpressure_map[vertex_id].append(backpressure)
-                print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-            time.sleep(2.5)
-
-        total_backpressure_list = ["ok"] * backpressure_num
-
-        # success = True
-        for vertex_id in vertices_id_list:
-            high_backpressure_count = 0
-            index = 0
-            for backpressure in backpressure_map[vertex_id]:
-                if backpressure['backpressure-level'] == 'high':
-                    total_backpressure_list[index] = 'high'
-                elif backpressure['backpressure-level'] == 'low':
-                    if total_backpressure_list[index] == 'ok':
-                        total_backpressure_list[index] = 'low'
-                index += 1
-
-            # Initialize the backpressure map
-            backpressure_map[vertex_id] = []
-
-        is_backpressure_high_list = map(lambda x: x == 'high', total_backpressure_list)
-        if reduce(lambda x, y: x and y, is_backpressure_high_list):
-            status = "fail"
-        elif is_backpressure_high_list[backpressure_num - 1]:
-            status = "hold"
-        else:
-            status = "pass"
-        """
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
@@ -263,6 +228,9 @@ try:
         if len(latency_list) == 0:
             print("Cannot read latencies...!")
             raise ValueError
+
+        print("\n")
+        print(latency_list)
 
         # Determine continuous increasing pattern with linear regression
         time_step = float(time_running) / float(len(latency_list))
