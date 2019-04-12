@@ -51,8 +51,8 @@ state_backend = configs['state_backend']
 
 #event time settings
 time = configs['time']
-watermark_interval = int(configs['streamix.watermark_interval'])
-max_timelag = int(configs['streamix.max_timelag'])
+watermark_interval = configs['streamix.watermark_interval']
+max_timelag = configs['streamix.max_timelag']
 
 # submit the query firstly to flink
 if time == "event-time":
