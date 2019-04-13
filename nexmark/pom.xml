@@ -48,9 +48,9 @@
                         </filter>
                     </filters>
                     <transformers>
-                        <!--transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>edu.snu.splab.gwstreambench.query.KafkaWindowWordcount</mainClass>
-                        </transformer-->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>edu.snu.splab.gwstreambench.nexmark.QueryMain</mainClass>
+                        </transformer>
                     </transformers>
                 </configuration>
             </plugin>
