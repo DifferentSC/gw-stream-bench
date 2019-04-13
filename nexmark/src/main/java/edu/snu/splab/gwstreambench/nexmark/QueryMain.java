@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public final class Main {
+public final class QueryMain {
     private static final Map<String, StateBackendFactory> STATE_BACKENDS;
     private static final Map<String, QueryBuilder> QUERY_BUILDERS;
 
