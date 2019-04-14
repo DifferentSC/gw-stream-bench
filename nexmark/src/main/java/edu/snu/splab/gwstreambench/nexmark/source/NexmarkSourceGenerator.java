@@ -18,13 +18,15 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
     private static final int BID_PROPORTION = 46;
     private static final int PROPORTION_DENOMINATOR =
             PERSON_PROPORTION + AUCTION_PROPORTION + BID_PROPORTION;
-    private static final long EVENTS_PER_SECOND = 10000;
-    private static final long INTER_EVENT_DELAY_US
-            = ((1_000_000L + EVENTS_PER_SECOND / 2) / EVENTS_PER_SECOND) * NUM_GENERATORS;
     private static final long BASE_TIME = Instant.parse("2015-07-15T00:00:00.000Z").toEpochMilli();
 
+    private final long interEventDelayUs;
 
     private long numGeneratedEvents = 0;
+
+    public NexmarkSourceGenerator(final long eventsPerSecond) {
+        this.interEventDelayUs = ((1_000_000L + eventsPerSecond / 2) / eventsPerSecond) * NUM_GENERATORS;
+    }
 
     @Override
     public boolean hasNext() {
@@ -35,8 +37,8 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
     @Override
     public Event next() {
         final long eventId = numGeneratedEvents * 954;
-        final long eventTimeStamp = BASE_TIME + (eventId * INTER_EVENT_DELAY_US) / 1000L;
-        final long watermark = BASE_TIME + (numGeneratedEvents * INTER_EVENT_DELAY_US) / 1000L;
+        final long eventTimeStamp = BASE_TIME + (eventId * interEventDelayUs) / 1000L;
+        final long watermark = BASE_TIME + (numGeneratedEvents * interEventDelayUs) / 1000L;
 
         final Random random = new Random(eventId);
         final long rem = eventId % PROPORTION_DENOMINATOR;
@@ -210,12 +212,12 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
         final long maxAuction = lastBase0AuctionId(nextEventId);
         return minAuction + nextLong(random, maxAuction - minAuction + 1 + AUCTION_ID_LEAD);
     }
-    private static long nextAuctionLengthMs(final long currentEventNumber, final long eventsCountSoFar,
+    private long nextAuctionLengthMs(final long currentEventNumber, final long eventsCountSoFar,
                                             final Random random, final long timestamp) {
         final long numEventsForAuctions =
                 ((long) NUM_IN_FLIGHT_AUCTIONS * PROPORTION_DENOMINATOR) / AUCTION_PROPORTION;
         final long futureAuction =
-                BASE_TIME+ ((currentEventNumber + numEventsForAuctions) * INTER_EVENT_DELAY_US) / 1000L;
+                BASE_TIME+ ((currentEventNumber + numEventsForAuctions) * interEventDelayUs) / 1000L;
         final long horizonMs = futureAuction - timestamp;
         return 1L + nextLong(random, Math.max(horizonMs * 2, 1L));
     }

@@ -36,8 +36,8 @@ public final class QueryMain {
         // set up env
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(parallelism);
-        env.getConfig()
-                .enableObjectReuse();
+        env.getConfig().enableObjectReuse();
+        env.getConfig().disableGenericTypes();
 
         // set up state backend
         final StateBackendFactory stateBackendFactory = STATE_BACKENDS.get(stateBackend);

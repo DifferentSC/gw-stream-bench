@@ -14,6 +14,7 @@
         <module>window-samza-vldb</module>
         <module>window-event-time</module>
         <module>nexmark</module>
+        <module>nexmark-generator</module>
     </modules>
 
     <properties>
