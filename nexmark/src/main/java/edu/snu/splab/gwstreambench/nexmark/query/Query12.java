@@ -19,7 +19,8 @@ public class Query12 implements QueryBuilder {
                                     final ParameterTool params, final Properties properties) {
         return in.filter((FilterFunction<Event>) event -> event.eventType == Event.EventType.BID)
                 .map((MapFunction<Event, Bid>) event -> event.bid)
-                .map((MapFunction<Bid, Tuple2<Long, Long>>) bid -> new Tuple2<>(bid.bidder, 1L))
+                .map((MapFunction<Bid, Long>) bid -> bid.bidder)
+                .map((MapFunction<Long, Tuple2<Long, Long>>) bidder -> new Tuple2<>(bidder, 1L))
                 .keyBy(0)
                 .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
                 .sum(1)
