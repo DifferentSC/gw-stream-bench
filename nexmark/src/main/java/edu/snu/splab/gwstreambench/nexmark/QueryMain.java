@@ -1,12 +1,19 @@
 package edu.snu.splab.gwstreambench.nexmark;
 
-import edu.snu.splab.gwstreambench.nexmark.query.Identity;
+import edu.snu.splab.gwstreambench.nexmark.model.Event;
 import edu.snu.splab.gwstreambench.nexmark.query.Query12;
 import edu.snu.splab.gwstreambench.nexmark.query.QueryBuilder;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StateBackendFactory;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StreamixFactory;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.serialization.TypeInformationSerializationSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +28,6 @@ public final class QueryMain {
         STATE_BACKENDS.put("streamix", new StreamixFactory());
 
         QUERY_BUILDERS = new HashMap<>();
-        QUERY_BUILDERS.put("identity", new Identity());
         QUERY_BUILDERS.put("12", new Query12());
     }
 
@@ -56,7 +62,12 @@ public final class QueryMain {
         if (queryBuilder == null) {
             throw new UnsupportedOperationException(String.format("Unknown query: %s", queryName));
         }
-        queryBuilder.build(env, params, properties);
+        final TypeInformation<Event> typeInformation = TypeExtractor.createTypeInfo(Event.class);
+        final DataStream<Event> events = env.addSource(
+                new FlinkKafkaConsumer011<>("nexmarkinput",
+                        new TypeInformationSerializationSchema<>(typeInformation, env.getConfig()), properties));
+        queryBuilder.build(events, env, params, properties)
+                .addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
         // execute the query
         env.execute(String.format("Nexmark %s on %s", queryName, stateBackend));
