@@ -69,9 +69,6 @@ public final class GeneratorMain {
         private void publish() {
             try {
                 final Event event = generator.next();
-                if (event == null) {
-                    return;
-                }
                 serializer.serialize(event, dataOutputView);
                 kafkaProducer.send(new ProducerRecord<>(TOPIC, dataOutputView.toByteArray()));
                 dataOutputView.reset();
