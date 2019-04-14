@@ -20,6 +20,7 @@ public final class GeneratorMain {
         final int eventsPerSecond = params.getInt("events_per_sec");
         final TypeInformation<Event> eventTypeInfo = TypeExtractor.createTypeInfo(Event.class);
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        env.getConfig().disableGenericTypes();
         final TypeSerializer<Event> serializer = eventTypeInfo.createSerializer(env.getConfig());
         final NexmarkSourceGenerator generator = new NexmarkSourceGenerator(eventsPerSecond);
         final Timer timer = new Timer();
