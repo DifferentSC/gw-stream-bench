@@ -48,11 +48,13 @@ public final class QueryMain {
         // env.getConfig().disableGenericTypes();
 
         // set up state backend
-        final StateBackendFactory stateBackendFactory = STATE_BACKENDS.get(stateBackend);
-        if (stateBackendFactory == null) {
-            throw new UnsupportedOperationException(String.format("Unknown state backend: %s", stateBackend));
+        if (!stateBackend.equals("default")) {
+            final StateBackendFactory stateBackendFactory = STATE_BACKENDS.get(stateBackend);
+            if (stateBackendFactory == null) {
+                throw new UnsupportedOperationException(String.format("Unknown state backend: %s", stateBackend));
+            }
+            env.setStateBackend(stateBackendFactory.get(params));
         }
-        env.setStateBackend(stateBackendFactory.get(params));
 
         // prepare properties
         final Properties properties = new Properties();
