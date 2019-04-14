@@ -4,6 +4,7 @@ import edu.snu.splab.gwstreambench.nexmark.model.Bid;
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -21,6 +22,7 @@ public class Query12 implements QueryBuilder {
                 .map((MapFunction<Event, Bid>) event -> event.bid)
                 .map((MapFunction<Bid, Long>) bid -> bid.bidder)
                 .map((MapFunction<Long, Tuple2<Long, Long>>) bidder -> new Tuple2<>(bidder, 1L))
+                .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
                 .sum(1)
