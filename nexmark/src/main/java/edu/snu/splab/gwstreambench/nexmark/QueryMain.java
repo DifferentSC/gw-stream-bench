@@ -1,6 +1,7 @@
 package edu.snu.splab.gwstreambench.nexmark;
 
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
+import edu.snu.splab.gwstreambench.nexmark.query.DebugBidderId;
 import edu.snu.splab.gwstreambench.nexmark.query.Query12;
 import edu.snu.splab.gwstreambench.nexmark.query.QueryBuilder;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StateBackendFactory;
@@ -29,6 +30,7 @@ public final class QueryMain {
 
         QUERY_BUILDERS = new HashMap<>();
         QUERY_BUILDERS.put("12", new Query12());
+        QUERY_BUILDERS.put("debug-bidder-id", new DebugBidderId());
     }
 
     public static final void main(final String[] args) throws Exception {
