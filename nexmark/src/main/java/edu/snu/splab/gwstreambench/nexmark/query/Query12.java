@@ -2,6 +2,7 @@ package edu.snu.splab.gwstreambench.nexmark.query;
 
 import edu.snu.splab.gwstreambench.nexmark.model.Bid;
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
+import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeHint;
@@ -26,8 +27,28 @@ public class Query12 implements QueryBuilder {
                 .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time.seconds(10)))
-                .sum(1)
-                .map((MapFunction<Tuple2<Long, Long>, String>) sum -> String.valueOf(sum.f1));
+                .aggregate(new AggregateFunction<Tuple2<Long, Long>, Tuple2<Long, Long>, Tuple2<Long, Long>>() {
+                    @Override
+                    public Tuple2<Long, Long> createAccumulator() {
+                        return new Tuple2<>(0L, 0L);
+                    }
+
+                    @Override
+                    public Tuple2<Long, Long> add(Tuple2<Long, Long> value, Tuple2<Long, Long> acc) {
+                        return new Tuple2<>(value.f0, value.f1 + acc.f1);
+                    }
+
+                    @Override
+                    public Tuple2<Long, Long> getResult(Tuple2<Long, Long> acc) {
+                        return acc;
+                    }
+
+                    @Override
+                    public Tuple2<Long, Long> merge(Tuple2<Long, Long> longLongTuple2, Tuple2<Long, Long> acc1) {
+                        return new Tuple2<>(longLongTuple2.f0, longLongTuple2.f1 + acc1.f1);
+                    }
+                })
+                .map((MapFunction<Tuple2<Long, Long>, String>) sum -> String.format("%d %d", sum.f0, sum.f1));
 
     }
 }
