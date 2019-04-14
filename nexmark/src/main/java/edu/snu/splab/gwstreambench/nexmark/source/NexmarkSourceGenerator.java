@@ -257,7 +257,38 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
         return auction;
     }
 
+    private static final int HOT_AUCTION_RATIO = 100;
+    private static final int HOT_BIDDER_RATIO = 100;
+    private static final int CONFIG_HOT_AUCTION_RATIO = 2;
+    private static final int CONFIG_HOT_BIDDERS_RATIO = 4;
+    private static final int AVG_BID_BYTE_SIZE = 100;
     private Bid nextBid(final long eventId, final long eventTimeStamp, final Random random) {
-        return null;
+        long auction;
+        if (random.nextInt(CONFIG_HOT_AUCTION_RATIO) > 0) {
+            // Choose the first auction in the batch of last HOT_AUCTION_RATIO auctions.
+            auction = (lastBase0AuctionId(eventId) / HOT_AUCTION_RATIO) * HOT_AUCTION_RATIO;
+        } else {
+            auction = nextBase0AuctionId(eventId, random);
+        }
+        auction += FIRST_AUCTION_ID;
+
+        long bidder;
+        if (random.nextInt(CONFIG_HOT_BIDDERS_RATIO) > 0) {
+            bidder = (lastBase0PersonId(eventId) / HOT_BIDDER_RATIO) * HOT_BIDDER_RATIO + 1;
+        } else {
+            bidder = nextBase0PersonId(eventId, random);
+        }
+        bidder += FIRST_PERSON_ID;
+
+        long price = nextPrice(random);
+        int currentSize = 8 + 8 + 8 + 8;
+        String extra = nextExtra(random, currentSize, AVG_BID_BYTE_SIZE);
+        final Bid bid = new Bid();
+        bid.auction = auction;
+        bid.bidder = bidder;
+        bid.price = price;
+        bid.dateTime = eventTimeStamp;
+        bid.extra = extra;
+        return bid;
     }
 }
