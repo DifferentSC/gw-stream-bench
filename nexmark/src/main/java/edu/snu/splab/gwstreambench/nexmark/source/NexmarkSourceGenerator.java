@@ -36,6 +36,9 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
 
     @Override
     public Event next() {
+        if (numGeneratedEvents >= 100000) {
+            return null;
+        }
         final long eventId = numGeneratedEvents * 954;
         final long eventTimeStamp = BASE_TIME + (eventId * interEventDelayUs) / 1000L;
         final long watermark = BASE_TIME + (numGeneratedEvents * interEventDelayUs) / 1000L;
