@@ -72,6 +72,8 @@ public class EventTimeWindowExp {
 ;
         str.addSink(new FlinkKafkaProducer011<String>(
             "result", new SimpleStringSchema(), properties));
+	
+	env.execute();
     }
 
     public static class TimeLagWatermarkGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
