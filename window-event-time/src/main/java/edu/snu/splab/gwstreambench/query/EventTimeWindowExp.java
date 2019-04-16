@@ -189,7 +189,7 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                     .keyBy(0)
-                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+                    .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
                     .process(new CountProcessWithLatency())
                     // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
