@@ -67,37 +67,13 @@ if streamix_time == "event-time":
         "--watermark_interval", str(watermark_interval),
         "--max_timelag", str(max_timelag)
     ]
-else:
-    flink_command_line = [
-        "flink", "run",
-        "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
-        "--broker_address", kafka_address,
-        "--zookeeper_address", zookeeper_address,
-        "--query_type", str(query),
-        "--state_backend", state_backend,
-        "--parallelism", str(parallelism)
-    ]
 
 if query == "session-window":
     flink_command_line += [
         "--session_gap", str(configs['query.window.session.gap'])
     ]
 
-else:
-    flink_command_line += [
-        "--window_size", str(configs['query.window.size']),
-        "--window_interval", str(configs['query.window.interval'])
-    ]
-
-if state_backend == "rocksdb":
-    flink_command_line += [
-        "--rocksdb_path", configs['rocksdb.path'],
-        "--block_cache_size", str(configs['rocksdb.block_cache_size']),
-        "--write_buffer_size", str(configs['rocksdb.write_buffer_size']),
-        "--table_format", str(configs['rocksdb.table_format'])
-    ]
-
-elif state_backend == "streamix":
+if state_backend == "streamix":
     flink_command_line += [
         "--state_store_path", configs['streamix.path'],
         "--batch_write_size", str(configs['streamix.batch_write_size']),
@@ -109,7 +85,7 @@ elif state_backend == "streamix":
 print("Submit the query the flink. Command line = " + str(flink_command_line))
 # Submit the query to flink
 submit_query = subprocess.Popen(flink_command_line)
-time.sleep(5)
+time.sleep(10)
 
 jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
 job_id_list = []
