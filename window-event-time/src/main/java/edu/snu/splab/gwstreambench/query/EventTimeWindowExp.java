@@ -175,12 +175,15 @@ public class EventTimeWindowExp {
             DataStream<String> text = env.addSource(
                     new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
             );
-            System.out.println("Query type: Session window with list state");
-            // parse the data, group it, window it, and aggregate the counts
+            System.out.println("Query type: Session window with list state with session gap");
+            System.out.println("session gap: "+sessionGap);
+	    System.out.println("test: "+text); 
+	    // parse the data, group it, window it, and aggregate the counts
             count = text
                     .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
                         private final Tuple3<Integer, String, Long> result = new Tuple3<>();
                         public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
+			    System.out.println("In flat map");
                             String[] splitLine = value.split("\\s");
                             result.f0 = Integer.valueOf(splitLine[0]);
                             result.f1 = splitLine[1];
@@ -212,13 +215,15 @@ public class EventTimeWindowExp {
 
         @Override
         public long extractTimestamp(Tuple3<Integer, String, Long> element, long previousElementTimestamp) {
-            return element.f2;
+		System.out.println("extractTimestamp");
+       		return element.f2;
         }
 
         @Override
         public Watermark getCurrentWatermark() {
             // return the watermark as current time minus the maximum time lag
-            return new Watermark(System.currentTimeMillis() - maxTimeLag);
+            	System.out.println("getCurrentWatermark");
+		return new Watermark(System.currentTimeMillis() - maxTimeLag);
         }
     }
 }

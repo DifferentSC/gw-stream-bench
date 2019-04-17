@@ -82,6 +82,29 @@ if state_backend == "streamix":
         "--file_num", str(configs['streamix.file_num'])
     ]
 
+source_command_line_prefix = [
+    "java", "-cp",
+    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
+    "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
+    "-b", kafka_address,
+    "-k", str(key_num),
+    "-s", str(key_skewness),
+    "-m", str(value_margin),
+    "-t", str(timer_threads_num)
+]
+
+if query == "session-window":
+    source_command_line_prefix += [
+        "-w", "uniform-session",
+        "-ast", str(configs['source.session.average_term']),
+        "-sg", str(configs['source.session.gap'])
+    ]
+
+else:
+    source_command_line_prefix += [
+        "-w", "uniform"
+    ]
+
 print("Submit the query the flink. Command line = " + str(flink_command_line))
 # Submit the query to flink
 submit_query = subprocess.Popen(flink_command_line)
@@ -111,40 +134,6 @@ print("Vertices ID = %s" % vertices_id_list)
 current_event_rate = rate_init
 success = True
 
-source_command_line_prefix = [
-    "java", "-cp",
-    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.source.KafkaWordGeneratingSource",
-    "-b", kafka_address,
-    "-k", str(key_num),
-    "-s", str(key_skewness),
-    "-m", str(value_margin),
-    "-t", str(timer_threads_num)
-]
-
-if query == "session-window":
-    source_command_line_prefix += [
-        "-w", "uniform-session",
-        "-ast", str(configs['source.session.average_term']),
-        "-sg", str(configs['source.session.gap'])
-    ]
-
-else:
-    source_command_line_prefix += [
-        "-w", "uniform"
-    ]
-
-"""
-sink_command_line = [
-    "java", "-cp",
-    "./source-sink/target/source-sink-1.0-SNAPSHOT-shaded.jar",
-    "edu.snu.splab.gwstreambench.sink.KafkaLatencyMeasure",
-    "-b", kafka_address,
-    "-t", str(time_running),
-    "-d", str(deadline_latency),
-    "-l", str(logging)
-]
-"""
 
 source_process = None
 
@@ -198,42 +187,6 @@ try:
             while time.time() - start_time < time_running:
                 time.sleep(1)
 
-        """
-        backpressure_num = 0
-        while time.time() - start_time < time_running:
-            backpressure_num += 1
-            for vertex_id in vertices_id_list:
-                backpressure = requests.get(flink_api_address +
-                                            "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-                backpressure_map[vertex_id].append(backpressure)
-                print("Vertex %s: Backpressure-level = %s" % (vertex_id, backpressure['backpressure-level']))
-            time.sleep(2.5)
-
-        total_backpressure_list = ["ok"] * backpressure_num
-
-        # success = True
-        for vertex_id in vertices_id_list:
-            high_backpressure_count = 0
-            index = 0
-            for backpressure in backpressure_map[vertex_id]:
-                if backpressure['backpressure-level'] == 'high':
-                    total_backpressure_list[index] = 'high'
-                elif backpressure['backpressure-level'] == 'low':
-                    if total_backpressure_list[index] == 'ok':
-                        total_backpressure_list[index] = 'low'
-                index += 1
-
-            # Initialize the backpressure map
-            backpressure_map[vertex_id] = []
-
-        is_backpressure_high_list = map(lambda x: x == 'high', total_backpressure_list)
-        if reduce(lambda x, y: x and y, is_backpressure_high_list):
-            status = "fail"
-        elif is_backpressure_high_list[backpressure_num - 1]:
-            status = "hold"
-        else:
-            status = "pass"
-        """
 
         # Kill the source process
         os.kill(source_process.pid, signal.SIGKILL)
