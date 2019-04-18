@@ -96,62 +96,14 @@ public class EventTimeWindowExp {
 
         // get the execution environment.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(parallelism);
-        env.getConfig().enableObjectReuse();
+        //env.setParallelism(parallelism);
+        //env.getConfig().enableObjectReuse();
 
         //Event-time specific
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(watermarkInterval);
 
-        // Set the state backend.
-        if (stateBackend.startsWith("rocksdb")) {
-            final RocksDBStateBackend rocksDBStateBackend = new RocksDBStateBackend("file:///tmp/");
-            rocksDBStateBackend.setDbStoragePath(dbPath);
-            //rocksDBStateBackend.setPredefinedOptions(PredefinedOptions.FLASH_SSD_OPTIMIZED);
-            //rocksDBStateBackend.setEnableStatistics(true);
-            rocksDBStateBackend.setOptions(new OptionsFactory() {
-                @Override
-                public DBOptions createDBOptions(DBOptions dbOptions)
-                {
-                    return dbOptions
-                            .setBytesPerSync(1024 * 1024);
-                }
-                @Override
-                public ColumnFamilyOptions createColumnOptions(ColumnFamilyOptions columnFamilyOptions) {
-
-                    final TableFormatConfig tableFormatConfig;
-                    if (tableFormat.equals("block")) {
-                        tableFormatConfig = new BlockBasedTableConfig();
-                    } else if (tableFormat.equals("plain")) {
-                        tableFormatConfig = new PlainTableConfig();
-                    } else {
-                        throw new IllegalArgumentException("RocksDB table format should be one of block or plain.");
-                    }
-
-                    return columnFamilyOptions
-                            .setTableFormatConfig(new BlockBasedTableConfig()
-                                    .setNoBlockCache(blockCacheSize == 0)
-                                    .setBlockCacheSize(blockCacheSize * 1024 * 1024)
-                                    .setBlockSize(16 * 1024)
-                            )
-                            .setWriteBufferSize(writeBufferSize * 1024 * 1024)
-                            .setMemTableConfig(new SkipListMemTableConfig())
-                            .setMaxWriteBufferNumber(1)
-                            .setTargetFileSizeBase(128 * 1024 * 1024)
-                            .setLevelZeroSlowdownWritesTrigger(40)
-                            .setLevelZeroStopWritesTrigger(46)
-                            .setBloomLocality(1)
-                            .setCompressionType(CompressionType.NO_COMPRESSION)
-                            .setTableFormatConfig(tableFormatConfig)
-                            .useFixedLengthPrefixExtractor(16)
-                            .setOptimizeFiltersForHits(false);
-                    //optimizeForPointLookup(writeBufferSize * 1024 * 1024);
-                }
-            });
-            env.setStateBackend(rocksDBStateBackend);
-        } else if (stateBackend.equals("mem")) {
-            env.setStateBackend(new FsStateBackend("file:///tmp"));
-        } else if (stateBackend.equals("streamix")) {
+        if (stateBackend.equals("streamix")) {
             env.setStateBackend(new StreamixStateBackend(
                     stateStorePath,
                     batchWriteSize,
@@ -160,7 +112,7 @@ public class EventTimeWindowExp {
                     batchReadSize
             ));
         } else {
-            throw new IllegalArgumentException("The state backend should be one of rocksdb / streamix / mem");
+            throw new IllegalArgumentException("The state backend should be one of STREAMIX");
         }
 
 
@@ -175,15 +127,16 @@ public class EventTimeWindowExp {
             DataStream<String> text = env.addSource(
                     new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
             );
-            System.out.println("Query type: Session window with list state with session gap");
+            System.out.println("\nQuery type: Session window with list state with session gap");
             System.out.println("session gap: "+sessionGap);
-	    System.out.println("test: "+text); 
+	    System.out.println("text: ");
+	    text.print();
+
 	    // parse the data, group it, window it, and aggregate the counts
             count = text
                     .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
                         private final Tuple3<Integer, String, Long> result = new Tuple3<>();
                         public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
-			    System.out.println("In flat map");
                             String[] splitLine = value.split("\\s");
                             result.f0 = Integer.valueOf(splitLine[0]);
                             result.f1 = splitLine[1];
@@ -191,18 +144,19 @@ public class EventTimeWindowExp {
                             out.collect(result);
                         }
                     })
-                    .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
+                   // .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                     .keyBy(0)
-                    .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-                    .process(new CountProcessWithLatency())
+		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+		    .process(new CountProcessWithLatency())
                     // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
         } else {
-            throw new IllegalArgumentException("Query should be one of aggregate-count, list-count, list-sliding-window," +
-                    " or session-window");
+            throw new IllegalArgumentException("Query should be session-window");
         }
 
+	System.out.println("\nAfter query handle");
         count.addSink(new FlinkKafkaProducer011<>(
                 "result", new SimpleStringSchema(), properties));
 

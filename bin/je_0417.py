@@ -89,7 +89,7 @@ flink_command_line = [
 ]
 
 #start flink process
-submit_guery = subprocess.Popen(flink_command_line)
+submit_query = subprocess.Popen(flink_command_line)
 print("Started flink process...")
 time.sleep(5)
 

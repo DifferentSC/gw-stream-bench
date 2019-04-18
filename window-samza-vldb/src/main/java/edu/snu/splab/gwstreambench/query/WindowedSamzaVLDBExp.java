@@ -215,6 +215,9 @@ public class WindowedSamzaVLDBExp {
           new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
       );
       System.out.println("Query type: Session window with list state");
+      System.out.print("text: ");
+      text.print();
+      
       // parse the data, group it, window it, and aggregate the counts
       count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
