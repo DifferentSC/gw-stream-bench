@@ -25,7 +25,7 @@ public class Query12 implements QueryBuilder {
                 .map((MapFunction<Event, Tuple2<Long, Long>>) event -> new Tuple2<>(event.bid.bidder, event.systemTimeStamp))
                 .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
-                .window(SlidingProcessingTimeWindows.of(Time.seconds(10), Time.seconds(10)))
+                .window(SlidingProcessingTimeWindows.of(Time.seconds(100), Time.seconds(100)))
                 .aggregate(new AggregateFunction<Tuple2<Long, Long>, Tuple3<Long, Long, Long>, Tuple3<Long, Long, Long>>() {
                     /*
                     In: (bidder, timestamp)
