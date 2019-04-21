@@ -16,6 +16,6 @@ public class DebugBidderId implements QueryBuilder {
         return in.filter((FilterFunction<Event>) event -> event.eventType == Event.EventType.BID)
                 .map((MapFunction<Event, Bid>) event -> event.bid)
                 .map((MapFunction<Bid, Long>) bid -> bid.bidder)
-                .map((MapFunction<Long, String>) bidder -> String.valueOf(bidder / 10));
+                .map((MapFunction<Long, String>) bidder -> String.valueOf(bidder));
     }
 }
