@@ -12,7 +12,13 @@ import org.apache.beam.sdk.values.TimestampedValue;
 import java.util.Iterator;
 
 public final class NexmarkSourceGenerator implements Iterator<Event> {
-    private final Generator generator = new Generator(new GeneratorConfig(NexmarkConfiguration.DEFAULT, System.currentTimeMillis(), 0, 0L, 0));
+    private final Generator generator;
+
+    public NexmarkSourceGenerator() {
+        final NexmarkConfiguration conf = NexmarkConfiguration.DEFAULT.copy();
+        conf.numEvents = 0;
+        generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
+    }
 
     @Override
     public boolean hasNext() {
