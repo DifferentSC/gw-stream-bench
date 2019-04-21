@@ -4,6 +4,10 @@ import edu.snu.splab.gwstreambench.nexmark.model.Auction;
 import edu.snu.splab.gwstreambench.nexmark.model.Bid;
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
 import edu.snu.splab.gwstreambench.nexmark.model.Person;
+import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
+import org.apache.beam.sdk.nexmark.sources.generator.Generator;
+import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
+import org.apache.beam.sdk.values.TimestampedValue;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -20,6 +24,7 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
             PERSON_PROPORTION + AUCTION_PROPORTION + BID_PROPORTION;
     private static final long BASE_TIME = Instant.parse("2015-07-15T00:00:00.000Z").toEpochMilli();
 
+    private final Generator generator = new Generator(new GeneratorConfig(NexmarkConfiguration.DEFAULT, System.currentTimeMillis(), 0, 0L, 0));
     private final long interEventDelayUs;
 
     private long numGeneratedEvents = 0;
@@ -36,6 +41,7 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
 
     @Override
     public Event next() {
+        // final TimestampedValue<org.apache.beam.sdk.nexmark.model.Event> event = generator.next();
         final long eventId = numGeneratedEvents * 954;
         final long eventTimeStamp = BASE_TIME + (eventId * interEventDelayUs) / 1000L;
         final long watermark = BASE_TIME + (numGeneratedEvents * interEventDelayUs) / 1000L;
