@@ -27,7 +27,7 @@ public final class GeneratorMain {
         env.getConfig().disableGenericTypes();
         final TypeSerializer<Event> serializer = eventTypeInfo.createSerializer(env.getConfig());
         // final NexmarkSourceGenerator generator = new NexmarkSourceGenerator(eventsPerSecond);
-        final NexmarkSourceGenerator generator = new NexmarkSourceGenerator();
+        final NexmarkSourceGenerator generator = new NexmarkSourceGenerator(eventsPerSecond);
         final Properties props = new Properties();
         props.put("bootstrap.servers", kafkaBrokerAddress);
         props.put("acks", "all");
