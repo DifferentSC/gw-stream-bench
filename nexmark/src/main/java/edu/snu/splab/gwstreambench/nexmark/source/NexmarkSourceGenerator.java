@@ -14,17 +14,18 @@ import java.util.Iterator;
 public final class NexmarkSourceGenerator implements Iterator<Event> {
     private Generator generator = null;
     private long numEvents = 0;
-    private static final long MAX_EVENTS = 20000000;
+    private long maxEvents = 0;
 
     public NexmarkSourceGenerator() {
         init();
     }
 
     private void init() {
-        final NexmarkConfiguration conf = NexmarkConfiguration.DEFAULT.copy();
-        conf.numEvents = 0;
         numEvents = 0;
-        generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
+        final NexmarkConfiguration conf = NexmarkConfiguration.DEFAULT.copy();
+        maxEvents = conf.numEvents;
+        generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, maxEvents, 0));
+        System.out.println("REWIND");
     }
 
     @Override
@@ -35,7 +36,7 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
 
     @Override
     public Event next() {
-        if (numEvents >= MAX_EVENTS) {
+        if (numEvents >= maxEvents) {
             init();
         }
         numEvents++;
