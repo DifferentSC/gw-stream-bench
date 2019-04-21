@@ -52,7 +52,7 @@ public class Query12 implements QueryBuilder {
                         return new Tuple3<>(acc0.f0, acc0.f1 + acc1.f1, Math.max(acc0.f2, acc1.f2));
                     }
                 })
-                .map((MapFunction<Tuple3<Long, Long, Long>, String>) sum -> String.valueOf(sum.f2))
+                .map((MapFunction<Tuple3<Long, Long, Long>, String>) sum -> String.valueOf(System.currentTimeMillis() - sum.f2))
                 .returns(String.class);
 
     }
