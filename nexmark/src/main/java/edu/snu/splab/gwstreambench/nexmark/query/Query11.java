@@ -25,7 +25,7 @@ public class Query11 implements QueryBuilder {
     public DataStream<String> build(final DataStream<Event> in, final StreamExecutionEnvironment env,
                                     final ParameterTool params, final Properties properties) throws Exception {
         return in.filter((FilterFunction<Event>) event -> event.eventType == Event.EventType.BID)
-                .map((MapFunction<Event, Tuple2<Long, Long>>) event -> new Tuple2<>(event.bid.bidder/ 10, event.systemTimeStamp))
+                .map((MapFunction<Event, Tuple2<Long, Long>>) event -> new Tuple2<>(event.bid.bidder, event.systemTimeStamp))
                 .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(10)))
