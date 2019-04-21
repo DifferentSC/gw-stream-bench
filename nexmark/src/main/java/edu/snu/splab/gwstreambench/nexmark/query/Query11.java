@@ -4,6 +4,7 @@ import edu.snu.splab.gwstreambench.nexmark.model.Event;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -20,6 +21,7 @@ public class Query11 implements QueryBuilder {
                                     final ParameterTool params, final Properties properties) throws Exception {
         return in.filter((FilterFunction<Event>) event -> event.eventType == Event.EventType.BID)
                 .map((MapFunction<Event, Tuple2<Long, Long>>) event -> new Tuple2<>(event.bid.bidder, event.systemTimeStamp))
+                .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(10)))
                 .aggregate(new AggregateFunction<Tuple2<Long, Long>, Tuple3<Long, Long, Long>, Tuple3<Long, Long, Long>>() {
