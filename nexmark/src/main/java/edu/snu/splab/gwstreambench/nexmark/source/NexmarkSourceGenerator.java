@@ -14,7 +14,7 @@ import java.util.Iterator;
 public final class NexmarkSourceGenerator implements Iterator<Event> {
     private Generator generator = null;
     private long numEvents = 0;
-    private static final long MAX_EVENTS = 200000000;
+    private static final long MAX_EVENTS = 20000000;
 
     public NexmarkSourceGenerator() {
         init();
