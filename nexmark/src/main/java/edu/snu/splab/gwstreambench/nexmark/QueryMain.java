@@ -31,7 +31,7 @@ public final class QueryMain {
 
         QUERY_BUILDERS = new HashMap<>();
         QUERY_BUILDERS.put("12", new Query12());
-        QUERY_BUILDERS.put("12", new Query11());
+        QUERY_BUILDERS.put("11", new Query11());
         QUERY_BUILDERS.put("debug-bidder-id", new DebugBidderId());
     }
 
