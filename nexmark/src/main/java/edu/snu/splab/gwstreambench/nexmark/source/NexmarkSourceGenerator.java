@@ -14,7 +14,7 @@ import java.util.Iterator;
 public final class NexmarkSourceGenerator implements Iterator<Event> {
     private Generator generator = null;
     private long numEvents = 0;
-    private static final long MAX_EVENTS = 20000000;
+    private static final long MAX_EVENTS = 2000000;
 
     public NexmarkSourceGenerator() {
         init();
@@ -25,6 +25,7 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
         conf.numEvents = 0;
         numEvents = 0;
         generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
+        System.out.println("REWIND");
     }
 
     @Override
