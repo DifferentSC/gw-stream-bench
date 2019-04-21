@@ -12,11 +12,18 @@ import org.apache.beam.sdk.values.TimestampedValue;
 import java.util.Iterator;
 
 public final class NexmarkSourceGenerator implements Iterator<Event> {
-    private final Generator generator;
+    private Generator generator = null;
+    private long numEvents = 0;
+    private static final long MAX_EVENTS = 20000000;
 
     public NexmarkSourceGenerator() {
+        init();
+    }
+
+    private void init() {
         final NexmarkConfiguration conf = NexmarkConfiguration.DEFAULT.copy();
         conf.numEvents = 0;
+        numEvents = 0;
         generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
     }
 
@@ -28,6 +35,11 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
 
     @Override
     public Event next() {
+        if (numEvents >= MAX_EVENTS) {
+            init();
+        }
+        numEvents++;
+
         final TimestampedValue<org.apache.beam.sdk.nexmark.model.Event> timestampedValue = generator.next();
         final org.apache.beam.sdk.nexmark.model.Event nexmarkEvent = timestampedValue.getValue();
         final Event event = new Event();
