@@ -14,6 +14,7 @@ public class Event {
     // event timestamp (specified as milliseconds since the Java epoch of 1970-01-01T00:00:00Z)
     public long timestamp;
     public long watermark;
+    public long systemTimeStamp;
 
     public Event() {
     }
@@ -26,6 +27,7 @@ public class Event {
         this.bid = bid;
         this.timestamp = timestamp;
         this.watermark = watermark;
+        this.systemTimeStamp = System.currentTimeMillis();
     }
 
     public Event(final Person person, final long timestamp, final long watermark) {
