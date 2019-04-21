@@ -5,13 +5,18 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.util.Collector;
 
 import java.util.Properties;
 
@@ -24,33 +29,31 @@ public class Query11 implements QueryBuilder {
                 .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(10)))
-                .aggregate(new AggregateFunction<Tuple2<Long, Long>, Tuple3<Long, Long, Long>, Tuple3<Long, Long, Long>>() {
-                    /*
-                    In: (bidder, timestamp)
-                    Acc: (bidder, count, maxTimestamp)
-                    Out: (bidder, count, maxTimestamp)
-                     */
-                    @Override
-                    public Tuple3<Long, Long, Long> createAccumulator() {
-                        return new Tuple3<>(0L, 0L, 0L);
-                    }
-
-                    @Override
-                    public Tuple3<Long, Long, Long> add(Tuple2<Long, Long> value, Tuple3<Long, Long, Long> acc) {
-                        return new Tuple3<>(value.f0, acc.f1 + 1, Math.max(value.f1, acc.f2));
-                    }
-
-                    @Override
-                    public Tuple3<Long, Long, Long> getResult(Tuple3<Long, Long, Long> acc) {
-                        return acc;
-                    }
-
-                    @Override
-                    public Tuple3<Long, Long, Long> merge(Tuple3<Long, Long, Long> acc0, Tuple3<Long, Long, Long> acc1) {
-                        return new Tuple3<>(acc0.f0, acc0.f1 + acc1.f1, Math.max(acc0.f2, acc1.f2));
-                    }
-                })
+                .process(new CountProcessWithLatency())
                 .map((MapFunction<Tuple3<Long, Long, Long>, String>) sum -> String.valueOf(System.currentTimeMillis() - sum.f2))
                 .returns(String.class);
+    }
+    public class CountProcessWithLatency
+            extends ProcessWindowFunction<Tuple2<Long, Long>, Tuple3<Long, Long, Long>,
+                        Tuple, TimeWindow> {
+
+        final Tuple3<Long, Long, Long> result = new Tuple3<>();
+
+        @Override
+        public void process(Tuple key,
+                            Context context,
+                            Iterable<Tuple2<Long, Long>> data,
+                            Collector<Tuple3<Long, Long, Long>> collector) throws Exception {
+            long count = 0;
+            long maxTimestamp = -1L;
+
+            for (final Tuple2<Long, Long> element: data) {
+                count++;
+                maxTimestamp = Math.max(maxTimestamp, element.f1);
+            }
+            long intKey = key.getField(0);
+            result.setFields(intKey, count, maxTimestamp);
+            collector.collect(result);
+        }
     }
 }
