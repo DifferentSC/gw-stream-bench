@@ -54,7 +54,7 @@ public final class QueryMain {
         // env.getConfig().disableGenericTypes();
 
         // set up state backend
-        if (stateBackend.equals("rocksDB")) {
+        if (stateBackend.equals("rocksdb")) {
             final String tableFormat = params.get("table_format");
             final String dbPath = params.get("rocksdb_path", "");
             final int writeBufferSize = params.getInt("write_buffer_size", 0);
