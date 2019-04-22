@@ -5,6 +5,7 @@ import edu.snu.splab.gwstreambench.nexmark.query.DebugBidderId;
 import edu.snu.splab.gwstreambench.nexmark.query.Query11;
 import edu.snu.splab.gwstreambench.nexmark.query.Query12;
 import edu.snu.splab.gwstreambench.nexmark.query.QueryBuilder;
+import edu.snu.splab.gwstreambench.nexmark.statebackend.RocksDBFactory;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StateBackendFactory;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StreamixFactory;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -28,6 +29,7 @@ public final class QueryMain {
     static {
         STATE_BACKENDS = new HashMap<>();
         STATE_BACKENDS.put("streamix", new StreamixFactory());
+        STATE_BACKENDS.put("rocksdb", new RocksDBFactory());
 
         QUERY_BUILDERS = new HashMap<>();
         QUERY_BUILDERS.put("12", new Query12());
