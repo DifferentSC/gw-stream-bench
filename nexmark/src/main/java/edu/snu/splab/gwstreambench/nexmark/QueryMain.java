@@ -13,6 +13,7 @@ import org.apache.flink.api.common.serialization.TypeInformationSerializationSch
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.runtime.state.AbstractStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
@@ -57,7 +58,9 @@ public final class QueryMain {
             if (stateBackendFactory == null) {
                 throw new UnsupportedOperationException(String.format("Unknown state backend: %s", stateBackend));
             }
-            env.setStateBackend(stateBackendFactory.get(params));
+            final AbstractStateBackend backend = stateBackendFactory.get(params);
+            System.out.println(backend.getClass());
+            env.setStateBackend(backend);
         }
 
         // prepare properties
