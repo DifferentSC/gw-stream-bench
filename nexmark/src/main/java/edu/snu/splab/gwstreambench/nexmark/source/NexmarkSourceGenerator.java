@@ -53,6 +53,7 @@ public final class NexmarkSourceGenerator implements Iterator<byte[]> {
         nextEventIdx++;
         if (nextEventIdx >= ret.length) {
             nextEventIdx = 0;
+            System.out.println("rewind");
         }
         return ret;
     }
