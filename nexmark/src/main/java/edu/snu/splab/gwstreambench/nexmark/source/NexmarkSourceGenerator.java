@@ -8,25 +8,37 @@ import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.sources.generator.Generator;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.beam.sdk.values.TimestampedValue;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.java.typeutils.TypeExtractor;
+import org.apache.flink.core.memory.ByteArrayDataOutputView;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.io.IOException;
 import java.util.Iterator;
 
-public final class NexmarkSourceGenerator implements Iterator<Event> {
-    private Generator generator = null;
-    private long numEvents = 0;
-    private final long MAX_EVENTS;
+public final class NexmarkSourceGenerator implements Iterator<byte[]> {
+    private final byte[][] events;
+    private int nextEventIdx = 0;
 
-    public NexmarkSourceGenerator(final int eventsPerSec) {
-        MAX_EVENTS = eventsPerSec * 11;
-        init();
-    }
-
-    private void init() {
+    public NexmarkSourceGenerator(final int eventsPerSec) throws IOException {
+        final int numEvents = eventsPerSec * 11;
         final NexmarkConfiguration conf = NexmarkConfiguration.DEFAULT.copy();
-        conf.numEvents = 0;
-        numEvents = 0;
-        generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
-        System.out.println("REWIND");
+        conf.numEvents = numEvents;
+        conf.firstEventRate = eventsPerSec;
+        conf.nextEventRate = eventsPerSec;
+        final Generator generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
+        final ByteArrayDataOutputView dataOutputView = new ByteArrayDataOutputView(1000);
+        final TypeInformation<Event> eventTypeInfo = TypeExtractor.createTypeInfo(Event.class);
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        env.getConfig().disableGenericTypes();
+        final TypeSerializer<Event> serializer = eventTypeInfo.createSerializer(env.getConfig());
+        events = new byte[numEvents][];
+        for (int i = 0; i < numEvents; i++) {
+            serializer.serialize(nextEvent(generator), dataOutputView);
+            events[i] = dataOutputView.toByteArray();
+            dataOutputView.reset();
+        }
     }
 
     @Override
@@ -36,12 +48,11 @@ public final class NexmarkSourceGenerator implements Iterator<Event> {
     }
 
     @Override
-    public Event next() {
-        if (numEvents >= MAX_EVENTS) {
-            init();
-        }
-        numEvents++;
+    public byte[] next() {
+        return events[nextEventIdx++];
+    }
 
+    public static Event nextEvent(final Generator generator) {
         final TimestampedValue<org.apache.beam.sdk.nexmark.model.Event> timestampedValue = generator.next();
         final org.apache.beam.sdk.nexmark.model.Event nexmarkEvent = timestampedValue.getValue();
         final Event event = new Event();
