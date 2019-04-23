@@ -11,6 +11,7 @@ import edu.snu.splab.gwstreambench.nexmark.statebackend.StreamixFactory;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.serialization.TypeInformationSerializationSchema;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -134,7 +135,8 @@ public final class QueryMain {
                 new FlinkKafkaConsumer011<>("nexmarkinput",
                         new TypeInformationSerializationSchema<>(typeInformation, env.getConfig()), properties));
         final TypeSerializer<Event>eventTypeSerializer = TypeExtractor.createTypeInfo(Event.class).createSerializer(env.getConfig());
-        final DataStream<Tuple2<Event, Long>> tuples = events.map((MapFunction<TimestampedEvent, Tuple2<Event, Long>>) timestampedEvent -> new Tuple2<>(eventTypeSerializer.deserialize(new ByteArrayDataInputView(timestampedEvent.event)), timestampedEvent.systemTimeStamp));
+        final DataStream<Tuple2<Event, Long>> tuples = events.map((MapFunction<TimestampedEvent, Tuple2<Event, Long>>) timestampedEvent -> new Tuple2<>(eventTypeSerializer.deserialize(new ByteArrayDataInputView(timestampedEvent.event)), timestampedEvent.systemTimeStamp))
+                .returns(new TypeHint<Tuple2<Event, Long>>() {});
         queryBuilder.build(tuples, env, params, properties)
                 .addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
