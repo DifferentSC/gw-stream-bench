@@ -13,7 +13,6 @@ public class Event {
     public Bid bid;
     // event timestamp (specified as milliseconds since the Java epoch of 1970-01-01T00:00:00Z)
     public long timestamp;
-    public long systemTimeStamp;
 
     public Event() {
     }

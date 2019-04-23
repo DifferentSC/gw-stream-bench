@@ -1,15 +1,18 @@
 package edu.snu.splab.gwstreambench.nexmark.query;
 
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
+import edu.snu.splab.gwstreambench.nexmark.model.TimestampedEvent;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.memory.ByteArrayDataInputView;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
@@ -22,10 +25,10 @@ import java.util.Properties;
 
 public class Query11 implements QueryBuilder {
     @Override
-    public DataStream<String> build(final DataStream<Event> in, final StreamExecutionEnvironment env,
+    public DataStream<String> build(final DataStream<Tuple2<Event, Long>> in, final StreamExecutionEnvironment env,
                                     final ParameterTool params, final Properties properties) throws Exception {
-        return in.filter((FilterFunction<Event>) event -> event.eventType == Event.EventType.BID)
-                .map((MapFunction<Event, Tuple2<Long, Long>>) event -> new Tuple2<>(event.bid.bidder, event.systemTimeStamp))
+        return in.filter((FilterFunction<Tuple2<Event, Long>>) event -> event.f0.eventType == Event.EventType.BID)
+                .map((MapFunction<Tuple2<Event, Long>, Tuple2<Long, Long>>) event -> new Tuple2<>(event.f0.bid.bidder, event.f1))
                 .returns(new TypeHint<Tuple2<Long, Long>>() {})
                 .keyBy(0)
                 .window(ProcessingTimeSessionWindows.withGap(Time.seconds(10)))
@@ -35,7 +38,7 @@ public class Query11 implements QueryBuilder {
     }
     public class CountProcessWithLatency
             extends ProcessWindowFunction<Tuple2<Long, Long>, Tuple3<Long, Long, Long>,
-                        Tuple, TimeWindow> {
+            Tuple, TimeWindow> {
 
         final Tuple3<Long, Long, Long> result = new Tuple3<>();
 

@@ -1,19 +1,24 @@
 package edu.snu.splab.gwstreambench.nexmark;
 
 import edu.snu.splab.gwstreambench.nexmark.model.Event;
+import edu.snu.splab.gwstreambench.nexmark.model.TimestampedEvent;
 import edu.snu.splab.gwstreambench.nexmark.query.DebugBidderId;
 import edu.snu.splab.gwstreambench.nexmark.query.Query11;
 import edu.snu.splab.gwstreambench.nexmark.query.Query12;
 import edu.snu.splab.gwstreambench.nexmark.query.QueryBuilder;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StateBackendFactory;
 import edu.snu.splab.gwstreambench.nexmark.statebackend.StreamixFactory;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.serialization.TypeInformationSerializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.typeutils.TypeSerializer;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
+import org.apache.flink.core.memory.ByteArrayDataInputView;
 import org.apache.flink.runtime.state.AbstractStateBackend;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -124,11 +129,13 @@ public final class QueryMain {
         if (queryBuilder == null) {
             throw new UnsupportedOperationException(String.format("Unknown query: %s", queryName));
         }
-        final TypeInformation<Event> typeInformation = TypeExtractor.createTypeInfo(Event.class);
-        final DataStream<Event> events = env.addSource(
+        final TypeInformation<TimestampedEvent> typeInformation = TypeExtractor.createTypeInfo(TimestampedEvent.class);
+        final DataStream<TimestampedEvent> events = env.addSource(
                 new FlinkKafkaConsumer011<>("nexmarkinput",
                         new TypeInformationSerializationSchema<>(typeInformation, env.getConfig()), properties));
-        queryBuilder.build(events, env, params, properties)
+        final TypeSerializer<Event>eventTypeSerializer = TypeExtractor.createTypeInfo(Event.class).createSerializer(env.getConfig());
+        final DataStream<Tuple2<Event, Long>> tuples = events.map((MapFunction<TimestampedEvent, Tuple2<Event, Long>>) timestampedEvent -> new Tuple2<>(eventTypeSerializer.deserialize(new ByteArrayDataInputView(timestampedEvent.event)), timestampedEvent.systemTimeStamp));
+        queryBuilder.build(tuples, env, params, properties)
                 .addSink(new FlinkKafkaProducer011<>("result", new SimpleStringSchema(), properties));
 
         // execute the query

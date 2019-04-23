@@ -1,9 +1,6 @@
 package edu.snu.splab.gwstreambench.nexmark.source;
 
-import edu.snu.splab.gwstreambench.nexmark.model.Auction;
-import edu.snu.splab.gwstreambench.nexmark.model.Bid;
-import edu.snu.splab.gwstreambench.nexmark.model.Event;
-import edu.snu.splab.gwstreambench.nexmark.model.Person;
+import edu.snu.splab.gwstreambench.nexmark.model.*;
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.sources.generator.Generator;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
@@ -18,6 +15,8 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public final class NexmarkSourceGenerator implements Iterator<byte[]> {
+    private final ByteArrayDataOutputView dataOutputView = new ByteArrayDataOutputView(1000);
+    private final TypeSerializer<TimestampedEvent> timestampedSerializer;
     private final byte[][] events;
     private int nextEventIdx = 0;
 
@@ -28,11 +27,10 @@ public final class NexmarkSourceGenerator implements Iterator<byte[]> {
         conf.firstEventRate = eventsPerSec;
         conf.nextEventRate = eventsPerSec;
         final Generator generator = new Generator(new GeneratorConfig(conf, System.currentTimeMillis(), 0, 0L, 0));
-        final ByteArrayDataOutputView dataOutputView = new ByteArrayDataOutputView(1000);
-        final TypeInformation<Event> eventTypeInfo = TypeExtractor.createTypeInfo(Event.class);
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
         env.getConfig().disableGenericTypes();
-        final TypeSerializer<Event> serializer = eventTypeInfo.createSerializer(env.getConfig());
+        final TypeSerializer<Event> serializer = TypeExtractor.createTypeInfo(Event.class).createSerializer(env.getConfig());
+        timestampedSerializer = TypeExtractor.createTypeInfo(TimestampedEvent.class).createSerializer(env.getConfig());
         events = new byte[numEvents][];
         for (int i = 0; i < numEvents; i++) {
             serializer.serialize(nextEvent(generator), dataOutputView);
@@ -49,11 +47,22 @@ public final class NexmarkSourceGenerator implements Iterator<byte[]> {
 
     @Override
     public byte[] next() {
-        final byte[] ret = events[nextEventIdx];
+        final byte[] event = events[nextEventIdx];
         nextEventIdx++;
-        if (nextEventIdx >= ret.length) {
+        if (nextEventIdx >= events.length) {
             nextEventIdx = 0;
+            System.out.println("REWIND");
         }
+        final TimestampedEvent timestampedEvent = new TimestampedEvent();
+        timestampedEvent.event = event;
+        timestampedEvent.systemTimeStamp = System.currentTimeMillis();
+        try {
+            timestampedSerializer.serialize(timestampedEvent, dataOutputView);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+        final byte[] ret = dataOutputView.toByteArray();
+        dataOutputView.reset();
         return ret;
     }
 
@@ -61,7 +70,6 @@ public final class NexmarkSourceGenerator implements Iterator<byte[]> {
         final TimestampedValue<org.apache.beam.sdk.nexmark.model.Event> timestampedValue = generator.next();
         final org.apache.beam.sdk.nexmark.model.Event nexmarkEvent = timestampedValue.getValue();
         final Event event = new Event();
-        event.systemTimeStamp = System.currentTimeMillis();
         event.auction = nexmarkEvent.newAuction == null ? null : convert(nexmarkEvent.newAuction);
         event.bid = nexmarkEvent.bid == null ? null : convert(nexmarkEvent.bid);
         event.person = nexmarkEvent.newPerson == null ? null : convert(nexmarkEvent.newPerson);
