@@ -49,7 +49,12 @@ public final class NexmarkSourceGenerator implements Iterator<byte[]> {
 
     @Override
     public byte[] next() {
-        return events[nextEventIdx++];
+        final byte[] ret = events[nextEventIdx];
+        nextEventIdx++;
+        if (nextEventIdx >= ret.length) {
+            nextEventIdx = 0;
+        }
+        return ret;
     }
 
     public static Event nextEvent(final Generator generator) {
