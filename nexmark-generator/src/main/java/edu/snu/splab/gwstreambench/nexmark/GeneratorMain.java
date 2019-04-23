@@ -47,6 +47,7 @@ public final class GeneratorMain {
 
         @Override
         public void run() {
+            System.out.println(System.currentTimeMillis());
             for (int i = 0; i < eventsToPublishInSingleRun; i++) {
                 kafkaProducer.send(new ProducerRecord<>(TOPIC, generator.next()));
             }
