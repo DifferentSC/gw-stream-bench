@@ -49,9 +49,9 @@ public class WordPublishRunner extends TimerTask {
   public void run() {
     for (int i = 0; i < eventsEmitsPerBatch; i++) {
       final String word = wordGenerator.getNextWord();
-      final String margin = marginList.get(random.nextInt(marginList.size()));
+      //final String margin = marginList.get(random.nextInt(marginList.size()));
       final Long timestamp = System.currentTimeMillis();
-      final String event = String.format("%s %s %d", word, margin, timestamp);
+      final String event = String.format("%s %d", word, timestamp);
       kafkaProducer.send(new ProducerRecord<>("word", event));
     }
   }

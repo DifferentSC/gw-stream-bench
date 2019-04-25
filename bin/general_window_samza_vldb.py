@@ -97,7 +97,7 @@ jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
 job_id_list = []
 for job in jobs:
     if job['status'] == 'RUNNING':
-        job_id_list.append(job['id'])
+        job_id_list.append(job['id'])gg
 
 if len(job_id_list) > 1:
     print("There are %d jobs running. Terminate others before start" % len(job_id_list))
