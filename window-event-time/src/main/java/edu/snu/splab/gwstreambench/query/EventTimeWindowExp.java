@@ -181,22 +181,24 @@ public class EventTimeWindowExp {
 
             // parse the data, group it, window it, and aggregate the counts
             count = text
-                    .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
-                        private final Tuple3<Integer, String, Long> result = new Tuple3<>();
-                        public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
+                    .flatMap(new FlatMapFunction<String, Tuple3< String, Long, Integer>>() {
+                        private final Tuple3<String, Long, Integer> result = new Tuple3<>();
+                        public void flatMap(String value, Collector<Tuple3< String, Long, Integer>> out) {
                             String[] splitLine = value.split("\\s");
-                            result.f0 = Integer.valueOf(splitLine[0]);
-                            result.f1 = splitLine[1];
-                            result.f2 = Long.valueOf(splitLine[2]);
+                            result.f0 = splitLine[1];
+                            result.f1 = Long.valueOf(splitLine[2]);
+                            result.f2 = 0;
                             out.collect(result);
                         }
                     })
                     .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                     .keyBy(0)
                     .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-                    .process(new CountProcessWithLatency())
+                    .sum(2)
+                    .map(Tuple3::toString)
+                    //.process(new CountProcessWithLatency())
                     // Leave only the latencies
-                    .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+                    //.map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
         } else {
             throw new IllegalArgumentException("Query should be one of aggregate-count, list-count, list-sliding-window," +
@@ -210,12 +212,12 @@ public class EventTimeWindowExp {
 
     }
 
-    public static class TimeLagWatermarkGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
+    public static class TimeLagWatermarkGenerator implements AssignerWithPeriodicWatermarks<Tuple3<String, Long, Integer> > {
         //private final long maxTimeLag = 1000; // 1 seconds
 
         @Override
-        public long extractTimestamp(Tuple3<Integer, String, Long> element, long previousElementTimestamp) {
-            return element.f2;
+        public long extractTimestamp(Tuple3<String, Long, Integer> element, long previousElementTimestamp) {
+            return element.f1;
         }
 
         @Override
