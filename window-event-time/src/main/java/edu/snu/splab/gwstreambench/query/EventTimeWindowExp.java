@@ -160,8 +160,8 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
-		    .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-		    .allowedLateness(Time.seconds(10))
+		    .window(SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5)))
+		    .allowedLateness(allowedLateness)
 		    .process(new CountProcessWithLatency())
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
@@ -204,7 +204,7 @@ public class EventTimeWindowExp {
     }
 
     public static class BoundedOutOfOrdernessGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
-        private final long maxOutOfOrderness= 1000; // 5 seconds
+        private final long maxOutOfOrderness= 1000; 
 	private long currentMaxTimestamp;
 
         @Override
