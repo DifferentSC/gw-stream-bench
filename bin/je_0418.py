@@ -53,7 +53,7 @@ state_backend = configs['state_backend']
 streamix_time = configs['streamix.time']
 watermark_interval = configs['streamix.watermark_interval']
 max_timelag = configs['streamix.max_timelag']
-
+allowed_lateness = configs['allowed_lateness']
 
 # submit the query firstly to flink
 flink_command_line = [
@@ -66,7 +66,9 @@ flink_command_line = [
     "--parallelism", str(parallelism),
     "--watermark_interval", str(watermark_interval),
     "--max_timelag", str(max_timelag),
-    "--streamix_time", str(streamix_time)
+    "--streamix_time", str(streamix_time),
+    "--allowed_lateness", str(allowed_lateness)
+
     ]
 
 if query == "session-window":

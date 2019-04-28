@@ -62,6 +62,7 @@ public class EventTimeWindowExp {
         final Integer parallelism;
         final Integer watermarkInterval;
 	final String streamixTime;
+	final Integer allowedLateness;
 
         try{
             final ParameterTool params = ParameterTool.fromArgs(args);
@@ -73,6 +74,7 @@ public class EventTimeWindowExp {
             watermarkInterval = params.getInt("watermark_interval");
             maxTimeLag = params.getLong("max_timelag");
 	    streamixTime = params.get("streamix_time");
+	    allowedLateness = params.getInt("allowed_lateness");
 
             //for session window
             sessionGap = params.getInt("session_gap", -1);
@@ -156,12 +158,11 @@ public class EventTimeWindowExp {
                             out.collect(result);
                         }
                     })
-                    .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
+                    .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
 		    .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-                    //.window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+		    .allowedLateness(Time.seconds(10))
 		    .process(new CountProcessWithLatency())
-                    // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
 	    }
@@ -201,6 +202,27 @@ public class EventTimeWindowExp {
         env.execute("EventTime Session Window Experiment");
 
     }
+
+    public static class BoundedOutOfOrdernessGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
+        private final long maxOutOfOrderness= 1000; // 5 seconds
+	private long currentMaxTimestamp;
+
+        @Override
+        public long extractTimestamp(Tuple3<Integer, String, Long> element, long previousElementTimestamp) {
+		System.out.println("extractTimestamp");
+		long timestamp = element.f2;
+		currentMaxTimestamp = Math.max(timestamp, currentMaxTimestamp);
+       		return timestamp;
+        }
+
+        @Override
+        public Watermark getCurrentWatermark() {
+            // return the watermark as current time minus the maximum time lag
+            	System.out.println("getCurrentWatermark");
+		return new Watermark(currentMaxTimestamp-maxOutOfOrderness);
+        }
+    }
+
 
     public static class TimeLagWatermarkGenerator implements AssignerWithPeriodicWatermarks<Tuple3<Integer, String, Long> > {
         //private final long maxTimeLag = 1000; // 1 seconds

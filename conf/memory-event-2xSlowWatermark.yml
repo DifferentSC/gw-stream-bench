@@ -19,7 +19,7 @@ source.rate.increase: 10000
 query: session-window
 state_backend: streamix
 exp.parallelism: 8
-streamix.watermark_interval: 5000
+streamix.watermark_interval: 20000
 streamix.max_timelag: 1000
 streamix.path: /nvme
 streamix.batch_write_size: 1048576
@@ -28,7 +28,7 @@ streamix.cached_ratio: 0.15
 streamix.file_num: 64
 allowed_lateness: 0
 
-streamix.time: event-time
+streamix.time: processing-time
 query.window.session.gap: 10
 #query.window.size: 100
 #query.window.interval: 50

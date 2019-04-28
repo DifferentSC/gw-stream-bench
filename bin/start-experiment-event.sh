@@ -10,13 +10,19 @@ ssh streamix-w 'sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"'
 sleep 5
 ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh && /home/ubuntu/flink-nvme/build-target/bin/start-cluster.sh"
 sleep 5
-python bin/je_0418.py conf/memory-event.yml
+python bin/je_0418.py conf/memory-event-slowWatermark.yml
 
 ssh streamix-w 'sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"'
 sleep 5
 ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh && /home/ubuntu/flink-nvme/build-target/bin/start-cluster.sh"
 sleep 5
-python bin/je_0418.py conf/memory-event.yml
+python bin/je_0418.py conf/memory-event-allowedLate.yml
+
+ssh streamix-w 'sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"'
+sleep 5
+ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh && /home/ubuntu/flink-nvme/build-target/bin/start-cluster.sh"
+sleep 5
+python bin/je_0418.py conf/memory-event-2xSlowWatermark.yml
 
 
 
