@@ -12,7 +12,8 @@ source.value.margin: 100
 source.timer.threads.num: 16
 source.session.average_term: 100
 source.session.gap: 15
-source.rate.init: 200000
+source.rate.init: 20000
+source.rate.increase: 10000
 
 #for flink
 query: session-window
@@ -26,7 +27,6 @@ streamix.batch_read_size: 4096
 streamix.cached_ratio: 0.15
 streamix.file_num: 64
 
-source.rate.increase: 10000
 
 streamix.time: event-time
 query.window.session.gap: 10

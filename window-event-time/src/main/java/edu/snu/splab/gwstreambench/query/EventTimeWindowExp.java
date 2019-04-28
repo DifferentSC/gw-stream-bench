@@ -9,6 +9,9 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
+
+import org.apache.flink.runtime.state.memory.MemoryStateBackend;
+
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -31,10 +34,7 @@ import org.rocksdb.PlainTableConfig;
 import org.rocksdb.SkipListMemTableConfig;
 import org.rocksdb.TableFormatConfig;
 
-
-
 import java.util.Properties;
-
 
 public class EventTimeWindowExp {
 
@@ -96,13 +96,15 @@ public class EventTimeWindowExp {
 
         // get the execution environment.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //env.setParallelism(parallelism);
+	env.setStateBackend(new MemoryStateBackend());
+
+	//env.setParallelism(parallelism);
         //env.getConfig().enableObjectReuse();
 
         //Event-time specific
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(watermarkInterval);
-
+/*
         if (stateBackend.equals("streamix")) {
             env.setStateBackend(new StreamixStateBackend(
                     stateStorePath,
@@ -114,8 +116,7 @@ public class EventTimeWindowExp {
         } else {
             throw new IllegalArgumentException("The state backend should be one of STREAMIX");
         }
-
-
+*/
         //set properties
         final Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", brokerAddress);
@@ -144,10 +145,10 @@ public class EventTimeWindowExp {
                             out.collect(result);
                         }
                     })
-                   // .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
+                    .assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                     .keyBy(0)
-		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+		    .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+                    //.window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
 		    .process(new CountProcessWithLatency())
                     // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
