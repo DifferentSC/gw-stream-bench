@@ -13,7 +13,7 @@ source.timer.threads.num: 16
 source.session.average_term: 100
 source.session.gap: 15
 source.rate.init: 20000
-source.rate.increase: 1000
+source.rate.increase: 10000
 
 #for flink
 query: session-window

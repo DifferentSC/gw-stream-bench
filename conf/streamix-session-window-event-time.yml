@@ -6,14 +6,14 @@ kafka.server.address: 172.31.22.37:9092
 kafka.zookeeper.address: 172.31.22.37:2181
 
 # for source
-source.key.num: 10000
+source.key.num: 1000
 source.key.skewness: 0.0
 source.value.margin: 100
 source.timer.threads.num: 16
 source.session.average_term: 100
 source.session.gap: 15
-source.rate.init: 20000
-source.rate.increase: 10000
+source.rate.init: 2000
+source.rate.increase: 1000
 
 #for flink
 query: session-window
