@@ -61,6 +61,7 @@ public class EventTimeWindowExp {
         final String tableFormat;
         final Integer parallelism;
         final Integer watermarkInterval;
+	final String streamixTime;
 
         try{
             final ParameterTool params = ParameterTool.fromArgs(args);
@@ -71,6 +72,7 @@ public class EventTimeWindowExp {
             parallelism = params.getInt("parallelism");
             watermarkInterval = params.getInt("watermark_interval");
             maxTimeLag = params.getLong("max_timelag");
+	    streamixTime = params.get("streamix_time");
 
             //for session window
             sessionGap = params.getInt("session_gap", -1);
@@ -102,9 +104,17 @@ public class EventTimeWindowExp {
         //env.getConfig().enableObjectReuse();
 
         //Event-time specific
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        env.getConfig().setAutoWatermarkInterval(watermarkInterval);
-/*
+	if(streamixTime.equals("event-time"))
+	{	env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        	env.getConfig().setAutoWatermarkInterval(watermarkInterval);
+	}
+	else
+	{	
+		env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
+	}
+		
+		
+		/*
         if (stateBackend.equals("streamix")) {
             env.setStateBackend(new StreamixStateBackend(
                     stateStorePath,
@@ -129,12 +139,13 @@ public class EventTimeWindowExp {
                     new FlinkKafkaConsumer011<>("word", new SimpleStringSchema(), properties)
             );
             System.out.println("\nQuery type: Session window with list state with session gap");
-            System.out.println("session gap: "+sessionGap);
-	    System.out.println("text: ");
 	    text.print();
 
+	    if(streamixTime.equals("event-time"))
+	    {
+	    System.out.println("event-time ");
 	    // parse the data, group it, window it, and aggregate the counts
-            count = text
+            	count = text
                     .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
                         private final Tuple3<Integer, String, Long> result = new Tuple3<>();
                         public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
@@ -153,6 +164,32 @@ public class EventTimeWindowExp {
                     // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
+	    }
+	    else//processing time
+	    {
+            System.out.println("processing-time ");
+	 	count = text
+                    .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
+                        private final Tuple3<Integer, String, Long> result = new Tuple3<>();
+                        public void flatMap(String value, Collector<Tuple3<Integer, String, Long>> out) {
+                            String[] splitLine = value.split("\\s");
+                            result.f0 = Integer.valueOf(splitLine[0]);
+                            result.f1 = splitLine[1];
+                            result.f2 = Long.valueOf(splitLine[2]);
+                            out.collect(result);
+                        }
+                    })
+                    //.assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
+                    .keyBy(0)
+		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+		    .process(new CountProcessWithLatency())
+                    // Leave only the latencies
+                    .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+                    .returns(String.class);
+
+	    }
+
         } else {
             throw new IllegalArgumentException("Query should be session-window");
         }

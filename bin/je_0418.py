@@ -63,13 +63,10 @@ flink_command_line = [
     "--zookeeper_address", zookeeper_address,
     "--query_type", str(query),
     "--state_backend", state_backend,
-    "--parallelism", str(parallelism)
-]
-
-if streamix_time == "event-time":
-    flink_command_line += [
-        "--watermark_interval", str(watermark_interval),
-        "--max_timelag", str(max_timelag)
+    "--parallelism", str(parallelism),
+    "--watermark_interval", str(watermark_interval),
+    "--max_timelag", str(max_timelag),
+    "--streamix_time", str(streamix_time)
     ]
 
 if query == "session-window":
