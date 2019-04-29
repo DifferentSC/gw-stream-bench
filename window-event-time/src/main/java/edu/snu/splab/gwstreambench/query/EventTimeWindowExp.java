@@ -23,6 +23,7 @@ import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindow
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
@@ -77,10 +78,17 @@ public class EventTimeWindowExp {
 	    streamixTime = params.get("streamix_time");
 	    allowedLateness = params.getInt("allowed_lateness");
 
+<<<<<<< HEAD
             windowSize = params.getInt("window_size", -1);
   	    windowInterval = params.getInt("window_interval", -1); 
 	
 	    //for session window
+=======
+	    windowSize = params.getInt("window_size", -1);
+	    windowInterval = params.getInt("window_interval", -1);
+
+            //for session window
+>>>>>>> d71e3ef2927fdee5a57eccd45ec24e0d1b0d881c
             sessionGap = params.getInt("session_gap", -1);
 
             //for rocksdb
@@ -119,20 +127,6 @@ public class EventTimeWindowExp {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
 	}
 		
-		
-		/*
-        if (stateBackend.equals("streamix")) {
-            env.setStateBackend(new StreamixStateBackend(
-                    stateStorePath,
-                    batchWriteSize,
-                    fileNum,
-                    cachedRatio,
-                    batchReadSize
-            ));
-        } else {
-            throw new IllegalArgumentException("The state backend should be one of STREAMIX");
-        }
-*/
         //set properties
         final Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", brokerAddress);
@@ -164,10 +158,17 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
+<<<<<<< HEAD
 		    .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
 		    .allowedLateness(Time.seconds(allowedLateness))
 		    .count()
                     .map(x -> x.toString())
+=======
+		    .window(SlidingEventTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
+		    .allowedLateness(Time.milliseconds(allowedLateness))
+		    .process(new CountProcessWithLatency())
+                    .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+>>>>>>> d71e3ef2927fdee5a57eccd45ec24e0d1b0d881c
                     .returns(String.class);
 	    }
 	    else//processing time

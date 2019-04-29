@@ -15,11 +15,14 @@ source.session.gap: 15
 source.rate.init: 20000
 source.rate.increase: 10000
 
+query.window.size: 50
+query.window.interval: 50
+
 #for flink
 query: session-window
 state_backend: streamix
 exp.parallelism: 8
-streamix.watermark_interval: 10000
+streamix.watermark_interval: 1000
 streamix.max_timelag: 1000
 streamix.path: /nvme
 streamix.batch_write_size: 1048576
@@ -35,7 +38,7 @@ query.window.size: 100
 query.window.interval: 50
 
 # measurement
-exp.wait_time: 150
+exp.wait_time: 100
 exp.running_time: 50
 exp.backpressure_threshold: 1.0
 exp.latency_deadline: 15000
