@@ -28,10 +28,10 @@ streamix.cached_ratio: 0.15
 streamix.file_num: 64
 allowed_lateness: 0
 
-streamix.time: processing-time
+streamix.time: process-time
 query.window.session.gap: 10
-#query.window.size: 100
-#query.window.interval: 50
+query.window.size: 100
+query.window.interval: 50
 
 # measurement
 exp.wait_time: 150

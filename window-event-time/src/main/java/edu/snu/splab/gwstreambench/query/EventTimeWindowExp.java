@@ -9,7 +9,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.contrib.streaming.state.OptionsFactory;
 import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
 import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
-
+import org.apache.flink.api.java.DataSet;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
 
 import org.apache.flink.runtime.state.filesystem.FsStateBackend;
@@ -21,6 +21,7 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
@@ -76,7 +77,10 @@ public class EventTimeWindowExp {
 	    streamixTime = params.get("streamix_time");
 	    allowedLateness = params.getInt("allowed_lateness");
 
-            //for session window
+            windowSize = params.getInt("window_size", -1);
+  	    windowInterval = params.getInt("window_interval", -1); 
+	
+	    //for session window
             sessionGap = params.getInt("session_gap", -1);
 
             //for rocksdb
@@ -160,10 +164,10 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
-		    .window(SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5)))
-		    .allowedLateness(allowedLateness)
-		    .process(new CountProcessWithLatency())
-                    .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+		    .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
+		    .allowedLateness(Time.seconds(allowedLateness))
+		    .count()
+                    .map(x -> x.toString())
                     .returns(String.class);
 	    }
 	    else//processing time
@@ -183,7 +187,7 @@ public class EventTimeWindowExp {
                     //.assignTimestampsAndWatermarks(new TimeLagWatermarkGenerator())
                     .keyBy(0)
 		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
-                    .window(ProcessingTimeSessionWindows.withGap(Time.seconds(sessionGap)))
+                    .window(SlidingProcessingTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
 		    .process(new CountProcessWithLatency())
                     // Leave only the latencies
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))

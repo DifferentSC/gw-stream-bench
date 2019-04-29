@@ -67,8 +67,9 @@ flink_command_line = [
     "--watermark_interval", str(watermark_interval),
     "--max_timelag", str(max_timelag),
     "--streamix_time", str(streamix_time),
-    "--allowed_lateness", str(allowed_lateness)
-
+    "--allowed_lateness", str(allowed_lateness),
+    "--window_size", str(configs['query.window.size']),
+    "--window_interval", str(configs['query.window.interval'])
     ]
 
 if query == "session-window":
@@ -253,11 +254,13 @@ try:
             requests.post(slack_webhook_url,
                           json={"text": "Eval *held* at thp = %d :|" % current_event_rate})
             fail_count += 1
+            status = "fail"
         else:
             requests.post(slack_webhook_url,
                           json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
             current_event_rate += rate_increase
             fail_count = 0
+            status = "fail"
 
 except:
     print("Killing the source process and the flink job...")
