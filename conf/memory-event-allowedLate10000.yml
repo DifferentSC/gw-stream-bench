@@ -30,7 +30,7 @@ streamix.batch_read_size: 4096
 streamix.cached_ratio: 0.15
 streamix.file_num: 64
 
-allowed_lateness: 2500
+allowed_lateness: 10000
 
 streamix.time: event-time
 query.window.session.gap: 10

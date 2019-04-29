@@ -22,6 +22,7 @@ import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionW
 import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
@@ -76,6 +77,9 @@ public class EventTimeWindowExp {
 	    streamixTime = params.get("streamix_time");
 	    allowedLateness = params.getInt("allowed_lateness");
 
+	    windowSize = params.getInt("window_size", -1);
+	    windowInterval = params.getInt("window_interval", -1);
+
             //for session window
             sessionGap = params.getInt("session_gap", -1);
 
@@ -115,20 +119,6 @@ public class EventTimeWindowExp {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
 	}
 		
-		
-		/*
-        if (stateBackend.equals("streamix")) {
-            env.setStateBackend(new StreamixStateBackend(
-                    stateStorePath,
-                    batchWriteSize,
-                    fileNum,
-                    cachedRatio,
-                    batchReadSize
-            ));
-        } else {
-            throw new IllegalArgumentException("The state backend should be one of STREAMIX");
-        }
-*/
         //set properties
         final Properties properties = new Properties();
         properties.setProperty("bootstrap.servers", brokerAddress);
@@ -160,8 +150,8 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
-		    .window(SlidingEventTimeWindows.of(Time.seconds(10), Time.seconds(5)))
-		    .allowedLateness(allowedLateness)
+		    .window(SlidingEventTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
+		    .allowedLateness(Time.milliseconds(allowedLateness))
 		    .process(new CountProcessWithLatency())
                     .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
                     .returns(String.class);
