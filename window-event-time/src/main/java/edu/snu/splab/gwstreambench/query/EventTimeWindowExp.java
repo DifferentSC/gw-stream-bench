@@ -1,40 +1,21 @@
 package edu.snu.splab.gwstreambench.query;
 
-import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.contrib.streaming.state.OptionsFactory;
-import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
-import org.apache.flink.contrib.streaming.state.StreamixStateBackend;
-import org.apache.flink.api.java.DataSet;
 import org.apache.flink.runtime.state.memory.MemoryStateBackend;
-
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.watermark.Watermark;
-import org.apache.flink.streaming.api.windowing.assigners.ProcessingTimeSessionWindows;
-import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 import org.apache.flink.util.Collector;
-
-import org.rocksdb.BlockBasedTableConfig;
-import org.rocksdb.ColumnFamilyOptions;
-import org.rocksdb.CompressionType;
-import org.rocksdb.DBOptions;
-import org.rocksdb.PlainTableConfig;
-import org.rocksdb.SkipListMemTableConfig;
-import org.rocksdb.TableFormatConfig;
 
 import java.util.Properties;
 
@@ -151,10 +132,10 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
-		    .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
-		    .allowedLateness(Time.seconds(allowedLateness))
-		    .count()
-                    .map(x -> x.toString())
+		                .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
+		                .allowedLateness(Time.seconds(allowedLateness))
+                    .process(new CountProcessWithLatency())
+                    .map(x -> String.valueOf(x.f1))
                     .returns(String.class);
 	    }
 	    else//processing time
@@ -175,9 +156,8 @@ public class EventTimeWindowExp {
                     .keyBy(0)
 		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
                     .window(SlidingProcessingTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
-		    .process(new CountProcessWithLatency())
-                    // Leave only the latencies
-                    .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+        .process(new CountProcessWithLatency())
+        .map(x -> String.valueOf(x.f1))
                     .returns(String.class);
 
 	    }
