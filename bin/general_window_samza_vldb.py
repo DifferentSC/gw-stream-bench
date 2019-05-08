@@ -168,10 +168,11 @@ for vertex_id in vertices_id_list:
     backpressure_map[vertex_id] = []
 
 status = "pass"
-fail_count = 0
+failure_count = 0
+p95_deadline = 25000
 
 try:
-    while status != "fail":
+    while failure_count < 5:
         print("Current Thp = %d" % current_event_rate)
         requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
@@ -278,10 +279,9 @@ try:
         p50latency = latency_list[int(len(latency_list) * 0.5)]
         p95latency = latency_list[int(len(latency_list) * 0.95)]
 
-        if slope > slope_threshold and fail_count < 2:
-            status = "hold"
-        elif slope > slope_threshold and fail_count >= 2:
+        if p95latency > p95_deadline:
             status = "fail"
+            failure_count += 1 
         else:
             status = "pass"
 
@@ -291,16 +291,13 @@ try:
 
         if status == "fail":
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate})
-        elif status == "hold":
-            requests.post(slack_webhook_url,
-                          json={"text": "Eval *held* at thp = %d :|" % current_event_rate})
-            fail_count += 1
+                          json={"text": "Eval *failed* at thp = %d T.T" % current_event_rate}) 
         else:
             requests.post(slack_webhook_url,
-                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate})
-            current_event_rate += rate_increase
-            fail_count = 0
+                          json={"text": "Eval *passed* at thp = %d :)" % current_event_rate}) 
+            failure_count = 0
+
+        current_event_rate += rate_increase
 
 except:
     print("Killing the source process and the flink job...")

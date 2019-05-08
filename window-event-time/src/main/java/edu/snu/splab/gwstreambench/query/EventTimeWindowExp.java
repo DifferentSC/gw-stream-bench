@@ -132,8 +132,9 @@ public class EventTimeWindowExp {
                     })
                     .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
                     .keyBy(0)
-		                .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
-		                .allowedLateness(Time.seconds(allowedLateness))
+		    //.window(EventTimeSessionWindows.withGap(Time.seconds(session)))
+	            .window(SlidingEventTimeWindows.of(Time.seconds(windowSize),Time.seconds(windowInterval) ))
+		    //.allowedLateness(Time.seconds(allowedLateness))
                     .process(new CountProcessWithLatency())
                     .map(x -> String.valueOf(x.f1))
                     .returns(String.class);
@@ -156,8 +157,8 @@ public class EventTimeWindowExp {
                     .keyBy(0)
 		    //.window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
                     .window(SlidingProcessingTimeWindows.of(Time.seconds(windowSize), Time.seconds(windowInterval)))
-        .process(new CountProcessWithLatency())
-        .map(x -> String.valueOf(x.f1))
+        	    .process(new CountProcessWithLatency())
+        	    .map(x -> String.valueOf(x.f1))
                     .returns(String.class);
 
 	    }
