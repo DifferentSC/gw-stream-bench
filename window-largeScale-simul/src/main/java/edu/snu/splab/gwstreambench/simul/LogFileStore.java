@@ -34,7 +34,7 @@ public class LogFileStore<K> {
             Path savedMaxTimeStampFilePath,
             Path metadataLogFilePath,
             Path logFilePath
-    ) throws Exception {
+    ){
         this.savedMaxTimeStampFilePath = savedMaxTimeStampFilePath;
         this.metadataLogFilePath = metadataLogFilePath;
         this.logFilePath = logFilePath;
