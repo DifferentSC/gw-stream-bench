@@ -13,6 +13,7 @@
         <module>source-sink</module>
         <module>window-samza-vldb</module>
         <module>window-event-time</module>
+        <module>window-largeScale-simul</module>
     </modules>
 
     <properties>
