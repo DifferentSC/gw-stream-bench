@@ -131,41 +131,26 @@ public class LargeScaleWindowSimul {
             final byte[] serializedTimestamp = timestampSerializationStream.toByteArray();
             serializedTimestamps.add(serializedTimestamp);
         }
-/*
-        //create log file store for each key group
-        //per threads, several key groups, thus several log file stores
-        ArrayList<ArrayList<LogFileStore>> arrayOfLogFileStores = new ArrayList<>();
-        for (int i=0;i < groupNum; i++){
-            //subtaskIndex = 0 ~ (vertexParallelism -1)
-            final Path path = Paths.get(stateStorePath, String.valueOf(subtaskIndex), "window-contents-separate-triggers");
 
-            LogFileStore<Integer> logFileStore;
-            try {
-                logFileStore = new LogFileStore<>(path, i);
-                arrayOfLogFileStores.get(i % numThreads).add(logFileStore);
-                //logFileStoreList.add(logFileStore);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-*/
         //create log, metadata, timestamp files
         //subtask index:0~7, groupNum:0~3(%4)
         final String META_DATA_LOG_FILE_NAME_FORMAT = ".meta.log";
         final String LOG_FILE_NAME_FORMAT = ".data.log";
         final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
-        final String groupFileName = String.format(LOG_FILE_NAME_FORMAT);
-        final String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT);
-        final String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT);
+
 
         for(int i=0; i < 8 ; i++)//subtask index
         {
             for(int j=0; j < 4 ; j++)//group number
             {
+                String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
+                String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
+                String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, String.valueOf(j));
+
                 Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(i), "window-contents-separate-triggers");
-                Path logFilePath = Paths.get(logFileDirectoryPath.toString(), String.valueOf(j), groupFileName);
+                Path logFilePath = Paths.get(logFileDirectoryPath.toString(), groupFileName);
                 Path metadataLogFilePath = Paths.get(logFileDirectoryPath.toString(), metadataFileName);
-                Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(),maxTimeStampFileName);
+                Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(), maxTimeStampFileName);
 
                 Files.createDirectories(logFilePath.getParent());
                 Files.createFile(metadataLogFilePath);
@@ -210,19 +195,18 @@ public class LargeScaleWindowSimul {
         }
 
 
-
         Thread[] threads = new Thread[8];//number of subtasks
         //create threads
         for(int i=0;i < 8; i++)
         {
             //per thread, 1 subtask
-            Runnable r = new Worker(subtaskKeys);//subtask num & keys belonging to it
+            Runnable r = new Worker(i, subtaskKeys.get(i));//subtask num & keys belonging to it
             threads[i] = new Thread(r);
             threads[i].start();
         }
 
         //join threads
-        for(int i=0;i < numThreads; i++) {
+        for(int i=0;i < 8; i++) {
             threads[i].join();
         }
     }

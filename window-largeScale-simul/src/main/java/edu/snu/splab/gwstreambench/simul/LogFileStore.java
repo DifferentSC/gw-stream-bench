@@ -18,15 +18,11 @@ import java.util.*;
 
 
 public class LogFileStore<K> {
-    private static final String META_DATA_LOG_FILE_NAME_FORMAT = ".meta.log";
-    private static final String LOG_FILE_NAME_FORMAT = ".data.log";
-    static final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
     static Path savedMaxTimeStampFilePath;
     static Path metadataLogFilePath;
     static Path logFilePath;
 
     static Map<Integer, List<byte[]>> writeBuffer = new HashMap<>();
-
     static int pendingWrites = 0;
 
     //Constructor
@@ -102,16 +98,21 @@ public class LogFileStore<K> {
         }
     }
 
-    static void writeTimestampToFile(HashMap<Integer, Long> keyToMaxTimestamp){
+    static void writeTimestampToFile(ArrayList<Integer> keysofThisSubtask, int groupNum, HashMap<Integer, Long> keyToMaxTimestamp){
         //write max timestamp to file
         try (final DataOutputStream timestampFileOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(savedMaxTimeStampFilePath.toFile(), true)));
         ){
-            for(Integer i=0; i < LargeScaleWindowSimul.numKeys;i++) {
-                timestampFileOut.write(i);
-                timestampFileOut.write(LargeScaleWindowSimul.serializedTimestamps.get((int)(long)keyToMaxTimestamp.get(i)));
-            }
+            for (Integer i =0 ; i < keysofThisSubtask.size() ; i++) {
+                final Integer key = keysofThisSubtask.get(i);
+                if(key % 4 == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
+                {
+                    final Long maxTimestamp = keyToMaxTimestamp.get(key);
 
+                    timestampFileOut.write(key);
+                    timestampFileOut.write(LargeScaleWindowSimul.serializedTimestamps.get((int)(long)maxTimestamp));
+                }
+            }
         }catch (final IOException e) {
             final StringBuilder builder = new StringBuilder();
             for (final StackTraceElement element: e.getStackTrace()) {

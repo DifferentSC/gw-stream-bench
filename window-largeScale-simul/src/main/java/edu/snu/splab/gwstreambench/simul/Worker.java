@@ -11,32 +11,32 @@ public class Worker implements Runnable {
     final String META_DATA_LOG_FILE_NAME_FORMAT = ".meta.log";
     final String LOG_FILE_NAME_FORMAT = ".data.log";
     final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
-    final String groupFileName = String.format(LOG_FILE_NAME_FORMAT);
-    final String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT);
-    final String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT);
 
-    Map<Integer, ArrayList<Integer>> subtaskKeys;
+    int subtaskNum;
+    ArrayList<Integer> keysofThisSubtask;
 
-    public Worker(Map<Integer, ArrayList<Integer>> subtaskKeys){
-        this.subtaskKeys = subtaskKeys;
+    public Worker(int subtaskNum, ArrayList<Integer> keysofThisSubtask)
+    {
+        this.subtaskNum = subtaskNum;
+        this.keysofThisSubtask = keysofThisSubtask;
     }
 
     @Override
     public void run(){
-        //create LogFileStore Instances
-        ArrayList<ArrayList<LogFileStore>> logFileStores = new ArrayList<>();
-        for(int i=0; i < 8 ; i++)//subtask index
+        //create LogFileStore Instances for this subtask
+        ArrayList<LogFileStore> logFiles = new ArrayList<>();
+        for (int j = 0 ; j < 4; j++)//group number
         {
-            ArrayList<LogFileStore> logFiles = new ArrayList<>();
-            for (int j = 0; j < 4; j++)//group number
-            {
-                Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(i), "window-contents-separate-triggers");
-                Path logFilePath = Paths.get(logFileDirectoryPath.toString(), String.valueOf(j), groupFileName);
-                Path metadataLogFilePath = Paths.get(logFileDirectoryPath.toString(), metadataFileName);
-                Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(),maxTimeStampFileName);
-                logFiles.add(new LogFileStore(savedMaxTimeStampFilePath, metadataLogFilePath, logFilePath));
-            }
-            logFileStores.add(logFiles);
+            String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
+            String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
+            String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, String.valueOf(j));
+
+            Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(this.subtaskNum), "window-contents-separate-triggers");
+            Path logFilePath = Paths.get(logFileDirectoryPath.toString(), groupFileName);
+            Path metadataLogFilePath = Paths.get(logFileDirectoryPath.toString(), metadataFileName);
+            Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(), maxTimeStampFileName);
+
+            logFiles.add(new LogFileStore(savedMaxTimeStampFilePath, metadataLogFilePath, logFilePath));
         }
 
         //Data Generation
@@ -58,21 +58,13 @@ public class Worker implements Runnable {
                 int selectedKey;
 
                 while (true) {
-                    selectedKey = random.nextInt(LargeScaleWindowSimul.numKeys);
+                    selectedKey = keysofThisSubtask.get(random.nextInt(keysofThisSubtask.size()));
 
                     //if selected key has expired active period
                     if (activeTimeMap.get(selectedKey).second() <= timestamp) {
                         //if selected key has been triggered(session gap passed), write read marker
                         if (timestamp - activeTimeMap.get(selectedKey).second() >= LargeScaleWindowSimul.sessionGap) {
-                            //iterate through subtaskKeys & find which subtask selected key belongs to
-                            for(int k =0 ;k < subtaskKeys.size(); k++)
-                            {
-                                if(subtaskKeys.get(k).contains(selectedKey))
-                                {
-                                    logFileStores.get(k).get(selectedKey % 4).write(selectedKey, null);
-                                    break;
-                                }
-                            }
+                            logFiles.get(selectedKey % 4).write(selectedKey, null);
                         }
 
                         //defer selected key's active time
@@ -89,15 +81,8 @@ public class Worker implements Runnable {
                 }
                 //this key is active
                 final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) timestamp));
-                //iterate through subtaskKeys & find which subtask selected key belongs to
-                for(int k =0 ;k < subtaskKeys.size(); k++)
-                {
-                    if(subtaskKeys.get(k).contains(selectedKey))
-                    {
-                        logFileStores.get(k).get(selectedKey % 4).write(selectedKey, serializedElement)
-                        break;
-                    }
-                }
+                logFiles.get(selectedKey % 4).write(selectedKey, serializedElement);
+
 
                 //if it is max timestamp of the key, save it to keyToMaxTimestamp
                 if (keyToMaxTimestamp.get(selectedKey) < timestamp) {
@@ -108,17 +93,15 @@ public class Worker implements Runnable {
         }
 
         //Finally, handle unwritten requests
-        for(int i=0; i < 8 ; i++)//subtask index
+        for (int j = 0; j < 4; j++)//group number
         {
-            for (int j = 0; j < 4; j++)//group number
-            {
-                //flush unwritten pending writes in this LogFileStore
-                logFileStores.get(i).get(j).clearWriteBuffer();
+            //flush unwritten pending writes in this LogFileStore
+            logFiles.get(j).clearWriteBuffer();
 
-                //write max timestamp to file
-                logFileStores.get(i).get(j).writeTimestampToFile(keyToMaxTimestamp);
-            }
+            //write max timestamp to file
+            logFiles.get(j).writeTimestampToFile(keysofThisSubtask, j, keyToMaxTimestamp);
         }
+
     }
 
     static byte[] getSerializedKey(int i)
