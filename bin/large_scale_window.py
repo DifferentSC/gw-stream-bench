@@ -2,6 +2,7 @@ import argparse
 import yaml
 import requests
 import subprocess
+import time
 
 configs = None
 
@@ -32,6 +33,7 @@ average_session_term = str(configs['average.session.term'])
 session_gap = str(configs['session.gap'])
 inactive_time = str(configs['inactive.time'])
 state_store_path = str(configs['state.store.path'])
+data_rate = str(configs['data.rate'])
 
 flink_large_scale_command_line = [
     "flink", "run",
@@ -44,8 +46,10 @@ flink_large_scale_command_line = [
     "--average_session_term", average_session_term,
     "--session_gap", session_gap,
     "--inactive_time", inactive_time,
-    "--state_store_path", state_store_path
+    "--state_store_path", state_store_path,
+    "--data_rate", data_rate
 ]
+
 
 print("submit the query to flink. Command line = "+str(flink_large_scale_command_line)+"\n")
 submit_query = subprocess.Popen(flink_large_scale_command_line)

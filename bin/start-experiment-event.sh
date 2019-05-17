@@ -3,7 +3,8 @@ ssh streamix-w 'sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"'
 sleep 5
 ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh && /home/ubuntu/flink-nvme/build-target/bin/start-cluster.sh"
 sleep 5
-python bin/general_window_samza_vldb.py conf/tmp.yml
+python bin/je_0418.py conf/streamix-session-window-event-time.yml
+#python bin/general_window_samza_vldb.py conf/.yml
 
 """
 =======

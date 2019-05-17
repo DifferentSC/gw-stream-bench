@@ -23,6 +23,7 @@ public class Worker implements Runnable {
 
     @Override
     public void run(){
+	System.out.println("worker run");
         //create LogFileStore Instances for this subtask
         ArrayList<LogFileStore> logFiles = new ArrayList<>();
         for (int j = 0 ; j < LargeScaleWindowSimul.groupNum; j++)//group number
@@ -80,7 +81,15 @@ public class Worker implements Runnable {
                     }
                 }
                 //this key is active
-                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) timestamp));
+                try {
+                    LargeScaleWindowSimul.timestampSerializer.serialize((long) timestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
+                }catch(final Exception e){
+                    System.err.println("Cannot serialize timestamp" + e.toString());
+                    return;
+                }
+                final byte[] serializedTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
+
+                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), serializedTimestamp);
                 logFiles.get(selectedKey % 4).write(selectedKey, serializedElement);
 
 
