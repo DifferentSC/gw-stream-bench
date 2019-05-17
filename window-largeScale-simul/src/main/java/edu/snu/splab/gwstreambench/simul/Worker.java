@@ -25,7 +25,7 @@ public class Worker implements Runnable {
     public void run(){
         //create LogFileStore Instances for this subtask
         ArrayList<LogFileStore> logFiles = new ArrayList<>();
-        for (int j = 0 ; j < 4; j++)//group number
+        for (int j = 0 ; j < LargeScaleWindowSimul.groupNum; j++)//group number
         {
             String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
             String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
@@ -93,7 +93,7 @@ public class Worker implements Runnable {
         }
 
         //Finally, handle unwritten requests
-        for (int j = 0; j < 4; j++)//group number
+        for (int j = 0; j < LargeScaleWindowSimul.groupNum; j++)//group number
         {
             //flush unwritten pending writes in this LogFileStore
             logFiles.get(j).clearWriteBuffer();

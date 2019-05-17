@@ -105,7 +105,7 @@ public class LogFileStore<K> {
         ){
             for (Integer i =0 ; i < keysofThisSubtask.size() ; i++) {
                 final Integer key = keysofThisSubtask.get(i);
-                if(key % 4 == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
+                if(key % LargeScaleWindowSimul.groupNum == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
                 {
                     final Long maxTimestamp = keyToMaxTimestamp.get(key);
 
