@@ -23,6 +23,7 @@ public class Worker implements Runnable {
 
     @Override
     public void run(){
+	System.out.println("worker run");
         //create LogFileStore Instances for this subtask
         ArrayList<LogFileStore> logFiles = new ArrayList<>();
         for (int j = 0 ; j < LargeScaleWindowSimul.groupNum; j++)//group number
