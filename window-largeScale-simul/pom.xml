@@ -26,7 +26,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>edu.snu.splab.gwstreambench.simul.LargeScaleWindowSimul</mainClass>
                     <outputFile>
                         ${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
                     </outputFile>
