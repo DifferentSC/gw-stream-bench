@@ -1,5 +1,6 @@
 package edu.snu.splab.gwstreambench.simul;
 
+import org.apache.commons.cli.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.IntSerializer;
@@ -52,27 +53,79 @@ public class LargeScaleWindowSimul {
     static TypeSerializer<Long> timestampSerializer;
     static ByteArrayOutputStreamWithPos timestampSerializationStream;
     static DataOutputView timestampSerializationDataOutputView;
-    //static ArrayList<byte[]> serializedTimestamps;
+    static ArrayList<byte[]> serializedTimestamps;
 
 
     public static final void main(final String[] args) throws Exception {
-        try{
-            final ParameterTool params = ParameterTool.fromArgs(args);
-            windowSize = params.getInt("window_size");
-            numKeys = params.getInt("num_keys");
-            marginSize = params.getInt("margin_size");
-            groupNum = params.getInt("group_num");
-            numThreads = params.getInt("num_threads");
-            dataRate = params.getInt("data_rate");
-            averageSessionTerm = params.getInt("average_session_term");
-            sessionGap = params.getInt("session_gap");
-            inactiveTime = params.getInt("inactive_time");
-            stateStorePath = params.get("state_store_path");
 
-        }catch(final Exception e){
-            System.err.println("Missing configuration!" + e.toString());
+        System.out.println("Getting options...");
+
+        final Options options = new Options();
+
+        final Option windowSizeOpt = new Option("w", true,"window_size");
+        windowSizeOpt.setRequired(true);
+        options.addOption(windowSizeOpt);
+
+        final Option numKeysOption = new Option("k", true,"num_keys");
+        numKeysOption.setRequired(true);
+        options.addOption(numKeysOption);
+
+        final Option marginSizeOption = new Option("m", true, "margin_size");
+        marginSizeOption.setRequired(true);
+        options.addOption(marginSizeOption);
+
+        final Option groupNumOption = new Option("g", true,"group_num");
+        groupNumOption.setRequired(true);
+        options.addOption(groupNumOption);
+
+        final Option numThreadsOption = new Option("t", true,"num_threads");
+        numThreadsOption.setRequired(true);
+        options.addOption(numThreadsOption);
+
+        final Option dataRateOption = new Option("d", true,"data_rate");
+        dataRateOption.setRequired(false);
+        options.addOption(dataRateOption);
+
+        final Option avgSessionTermOption = new Option("ast", true, "average_session_term");
+        avgSessionTermOption.setRequired(true);
+        options.addOption(avgSessionTermOption);
+
+        final Option sessionGapOption = new Option("sg", true, "session_gap");
+        sessionGapOption.setRequired(false);
+        options.addOption(sessionGapOption);
+
+        final Option inactiveTimeOption = new Option("i", true, "inactive_time");
+        inactiveTimeOption.setRequired(false);
+        options.addOption(inactiveTimeOption);
+
+        final Option stateStorePathOption = new Option("sst", true, "state_store_path");
+        stateStorePathOption.setRequired(false);
+        options.addOption(stateStorePathOption);
+
+        final CommandLineParser parser = new DefaultParser();
+        final HelpFormatter formatter = new HelpFormatter();
+        final CommandLine cmd;
+
+        try {
+            cmd = parser.parse(options, args);
+        } catch (final ParseException e) {
+            System.err.println(e);
+            formatter.printHelp("mqtt-stream-source", options);
+            System.exit(1);
             return;
         }
+
+        windowSize = Integer.valueOf(cmd.getOptionValue("w"));
+        numKeys = Integer.valueOf(cmd.getOptionValue("k"));
+        marginSize = Integer.valueOf(cmd.getOptionValue("m"));
+        groupNum = Integer.valueOf(cmd.getOptionValue("g"));
+        numThreads = Integer.valueOf(cmd.getOptionValue("t"));
+        dataRate = Integer.valueOf(cmd.getOptionValue("d"));
+        averageSessionTerm = Integer.valueOf(cmd.getOptionValue("ast"));
+        sessionGap = Integer.valueOf(cmd.getOptionValue("sg"));
+        inactiveTime = Integer.valueOf(cmd.getOptionValue("i"));
+        stateStorePath = cmd.getOptionValue("sst");
+
 
         keySerializer = new IntSerializer();
         keySerializationStream = new ByteArrayOutputStreamWithPos(128);
@@ -120,7 +173,7 @@ public class LargeScaleWindowSimul {
         }
 
 	System.out.println("generate timestamps");
-	/*
+
 	for(int i = 0; i < windowSize * 1000; i++) {
 
             //serialize timestamps
@@ -131,7 +184,7 @@ public class LargeScaleWindowSimul {
             }
             final byte[] serializedTimestamp = timestampSerializationStream.toByteArray();
             serializedTimestamps.add(serializedTimestamp);
-        }*/
+        }
 	
 
         //create log, metadata, timestamp files

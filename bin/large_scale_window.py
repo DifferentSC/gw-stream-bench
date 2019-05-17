@@ -35,6 +35,7 @@ inactive_time = str(configs['inactive.time'])
 state_store_path = str(configs['state.store.path'])
 data_rate = str(configs['data.rate'])
 
+"""
 flink_large_scale_command_line = [
     "flink", "run",
     "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
@@ -48,6 +49,22 @@ flink_large_scale_command_line = [
     "--inactive_time", inactive_time,
     "--state_store_path", state_store_path,
     "--data_rate", data_rate
+]
+"""
+
+java_large_scale_command_line = [
+    "java", "-jar",
+    "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
+    "-w", window_size,
+    "-k", num_keys,
+    "-m", margin_size,
+    "-g", group_num,
+    "-t", num_threads,
+    "-ast", average_session_term,
+    "-sg", session_gap,
+    "-i", inactive_time,
+    "-sst", state_store_path,
+    "-d", data_rate
 ]
 
 

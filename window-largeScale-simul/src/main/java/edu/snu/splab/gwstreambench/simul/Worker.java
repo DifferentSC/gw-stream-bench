@@ -81,15 +81,12 @@ public class Worker implements Runnable {
                     }
                 }
                 //this key is active
-                try {
-                    LargeScaleWindowSimul.timestampSerializer.serialize((long) timestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
-                }catch(final Exception e){
-                    System.err.println("Cannot serialize timestamp" + e.toString());
-                    return;
-                }
-                final byte[] serializedTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
 
-                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), serializedTimestamp);
+                //LargeScaleWindowSimul.timestampSerializer.serialize((long) timestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
+
+                //final byte[] serializedTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
+
+                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul .serializedTimestamps.get((int)(long)timestamp));
                 logFiles.get(selectedKey % 4).write(selectedKey, serializedElement);
 
 
