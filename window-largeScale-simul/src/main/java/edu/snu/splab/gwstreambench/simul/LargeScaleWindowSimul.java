@@ -52,7 +52,7 @@ public class LargeScaleWindowSimul {
     static TypeSerializer<Long> timestampSerializer;
     static ByteArrayOutputStreamWithPos timestampSerializationStream;
     static DataOutputView timestampSerializationDataOutputView;
-    static ArrayList<byte[]> serializedTimestamps;
+    //static ArrayList<byte[]> serializedTimestamps;
 
 
     public static final void main(final String[] args) throws Exception {
@@ -86,7 +86,7 @@ public class LargeScaleWindowSimul {
         timestampSerializer = new LongSerializer();
         timestampSerializationStream = new ByteArrayOutputStreamWithPos(128);
         timestampSerializationDataOutputView = new DataOutputViewStreamWrapper(timestampSerializationStream);
-        serializedTimestamps =new ArrayList<>();
+        //serializedTimestamps =new ArrayList<>();
 
         //generate margins
         final Random random = new Random();
@@ -120,7 +120,7 @@ public class LargeScaleWindowSimul {
         }
 
 	System.out.println("generate timestamps");
-	
+	/*
 	for(int i = 0; i < windowSize * 1000; i++) {
 
             //serialize timestamps
@@ -131,7 +131,7 @@ public class LargeScaleWindowSimul {
             }
             final byte[] serializedTimestamp = timestampSerializationStream.toByteArray();
             serializedTimestamps.add(serializedTimestamp);
-        }
+        }*/
 	
 
         //create log, metadata, timestamp files

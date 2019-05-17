@@ -110,7 +110,9 @@ public class LogFileStore<K> {
                     final Long maxTimestamp = keyToMaxTimestamp.get(key);
 
                     timestampFileOut.write(key);
-                    timestampFileOut.write(LargeScaleWindowSimul.serializedTimestamps.get((int)(long)maxTimestamp));
+                    LargeScaleWindowSimul.timestampSerializer.serialize((long) maxTimestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
+                    final byte[] serializedMaxTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
+                    timestampFileOut.write(serializedMaxTimestamp);
                 }
             }
         }catch (final IOException e) {
