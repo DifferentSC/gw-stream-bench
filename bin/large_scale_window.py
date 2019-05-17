@@ -90,13 +90,15 @@ print("Job ID = %s" % job_id)
 
 vertices = requests.get(flink_api_address + "/jobs/" + job_id).json()['vertices']
 vertices_id_list = []
-for vertex in vertices:                                                                                                                             
-    vertices_id_list.append(vertex['id'])                                                                                                           
-                                                                                                                                                    
-print("Vertices ID = %s" % vertices_id_list)                                                                                                        
-                                                                                                                                                    
-#kill flink job                                                                                                                                     
-print("Killing the flink job...")                                                                                                                   
-requests.patch(flink_api_address + "/jobs/" + job_id)                                                                                               
-print("Evaluation finished.")                                                                                                                       
-                                
+for vertex in vertices:
+    vertices_id_list.append(vertex['id'])
+
+print("Vertices ID = %s" % vertices_id_list)
+
+#kill flink job
+print("Killing the flink job...")
+requests.patch(flink_api_address + "/jobs/" + job_id)
+print("Evaluation finished.")
+
+
+

@@ -218,6 +218,7 @@ public class LargeScaleWindowSimul {
         //per subtask, array of keys belonging to it
         Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();
         try{
+	    System.out.println("opening newpath file....");
             File file = new File("/newpath.txt");
             FileReader filereader = new FileReader(file);
             BufferedReader bufReader = new BufferedReader(filereader);
