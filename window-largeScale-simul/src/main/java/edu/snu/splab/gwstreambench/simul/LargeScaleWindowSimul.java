@@ -56,7 +56,6 @@ public class LargeScaleWindowSimul {
 
 
     public static final void main(final String[] args) throws Exception {
-
         try{
             final ParameterTool params = ParameterTool.fromArgs(args);
             windowSize = params.getInt("window_size");
@@ -120,7 +119,9 @@ public class LargeScaleWindowSimul {
             serializedMargins.add(serializedMargin);
         }
 
-        for(int i = 0; i < windowSize * 1000; i++) {
+	System.out.println("generate timestamps");
+	
+	for(int i = 0; i < windowSize * 1000; i++) {
 
             //serialize timestamps
             try {
@@ -131,6 +132,7 @@ public class LargeScaleWindowSimul {
             final byte[] serializedTimestamp = timestampSerializationStream.toByteArray();
             serializedTimestamps.add(serializedTimestamp);
         }
+	
 
         //create log, metadata, timestamp files
         //subtask index:0~7, groupNum:0~3(%4)
@@ -138,7 +140,7 @@ public class LargeScaleWindowSimul {
         final String LOG_FILE_NAME_FORMAT = ".data.log";
         final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
 
-
+	System.out.println("create files..");
         for(int i=0; i < numThreads ; i++)//subtask index
         {
             for(int j=0; j < groupNum ; j++)//group number
@@ -159,6 +161,7 @@ public class LargeScaleWindowSimul {
             }
         }
 
+	System.out.println("read newpath txt");
         //per subtask, array of keys belonging to it
         Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();
         try{
@@ -194,7 +197,7 @@ public class LargeScaleWindowSimul {
             //System.out.println(e);
         }
 
-
+	System.out.println("create threads");
         Thread[] threads = new Thread[numThreads];//number of subtasks
         //create threads
         for(int i=0;i < numThreads; i++)
