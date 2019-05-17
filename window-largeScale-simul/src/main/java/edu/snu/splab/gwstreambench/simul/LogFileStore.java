@@ -2,7 +2,7 @@ package edu.snu.splab.gwstreambench.simul;
 
 import org.apache.flink.api.common.typeutils.TypeSerializer;
 import org.apache.flink.api.common.typeutils.base.LongSerializer;
-import org.apache.flink.contrib.streaming.state.io.InputStreamDataInputView;
+//import org.apache.flink.contrib.streaming.state.io.InputStreamDataInputView;
 import org.apache.flink.core.memory.ByteArrayOutputStreamWithPos;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.core.memory.DataOutputViewStreamWrapper;
