@@ -139,9 +139,9 @@ public class LargeScaleWindowSimul {
         final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
 
 
-        for(int i=0; i < 8 ; i++)//subtask index
+        for(int i=0; i < numThreads ; i++)//subtask index
         {
-            for(int j=0; j < 4 ; j++)//group number
+            for(int j=0; j < groupNum ; j++)//group number
             {
                 String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
                 String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
@@ -195,9 +195,9 @@ public class LargeScaleWindowSimul {
         }
 
 
-        Thread[] threads = new Thread[8];//number of subtasks
+        Thread[] threads = new Thread[numThreads];//number of subtasks
         //create threads
-        for(int i=0;i < 8; i++)
+        for(int i=0;i < numThreads; i++)
         {
             //per thread, 1 subtask
             Runnable r = new Worker(i, subtaskKeys.get(i));//subtask num & keys belonging to it
@@ -206,7 +206,7 @@ public class LargeScaleWindowSimul {
         }
 
         //join threads
-        for(int i=0;i < 8; i++) {
+        for(int i=0;i < numThreads; i++) {
             threads[i].join();
         }
     }
