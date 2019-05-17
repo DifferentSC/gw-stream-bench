@@ -56,6 +56,7 @@ public class LargeScaleWindowSimul {
 
 
     public static final void main(final String[] args) throws Exception {
+	System.out.println("in main");
 
         try{
             final ParameterTool params = ParameterTool.fromArgs(args);
@@ -74,7 +75,8 @@ public class LargeScaleWindowSimul {
             System.err.println("Missing configuration!" + e.toString());
             return;
         }
-
+	
+	System.out.println("after paramers");
         keySerializer = new IntSerializer();
         keySerializationStream = new ByteArrayOutputStreamWithPos(128);
         keySerializationDataOutputView = new DataOutputViewStreamWrapper(keySerializationStream);
@@ -162,6 +164,7 @@ public class LargeScaleWindowSimul {
         //per subtask, array of keys belonging to it
         Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();
         try{
+	    System.out.println("opening newpath file....");
             File file = new File("/newpath.txt");
             FileReader filereader = new FileReader(file);
             BufferedReader bufReader = new BufferedReader(filereader);

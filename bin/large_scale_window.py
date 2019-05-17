@@ -1,6 +1,7 @@
 import argparse
 import yaml
 import requests
+import subprocess
 
 configs = None
 
@@ -20,16 +21,17 @@ requests.post(slack_webhook_url,
               json={"text": str(configs)})
 
 # flink settings
-window_size = configs['window_size']
-num_keys = configs['num_keys']
-margin_size = configs['margin_size']
-group_num = configs['group_num']
-num_threads = configs['num_threads']
-data_rate = configs['data_rate']
-average_session_term = configs['average_session_term']
-session_gap = configs['session_gap']
-inactive_time = configs['inactive_time']
-state_store_path = configs['state_store_path']
+flink_api_address = configs['flink.api.address']
+
+window_size = str(configs['window.size'])
+num_keys = str(configs['num.keys'])
+margin_size = str(configs['margin.size'])
+group_num = str(configs['group.num'])
+num_threads = str(configs['num.threads'])
+average_session_term = str(configs['average.session.term'])
+session_gap = str(configs['session.gap'])
+inactive_time = str(configs['inactive.time'])
+state_store_path = str(configs['state.store.path'])
 
 flink_large_scale_command_line = [
     "flink", "run",
@@ -39,9 +41,43 @@ flink_large_scale_command_line = [
     "--margin_size", margin_size,
     "--group_num", group_num,
     "--num_threads", num_threads,
-    "--date_rate", data_rate,
     "--average_session_term", average_session_term,
     "--session_gap", session_gap,
     "--inactive_time", inactive_time,
     "--state_store_path", state_store_path
 ]
+
+print("submit the query to flink. Command line = "+str(flink_large_scale_command_line)+"\n")
+submit_query = subprocess.Popen(flink_large_scale_command_line)
+time.sleep(5)
+
+#check whether flink job is running
+print("\nChecking jobs...")
+jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
+job_id_list = []
+for job in jobs:
+    if job['status'] == 'RUNNING':
+        job_id_list.append(job['id'])
+
+if len(job_id_list) > 1:
+    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
+    exit(0)
+
+job_id = job_id_list[0]
+
+print("Job ID = %s" % job_id)
+
+vertices = requests.get(flink_api_address + "/jobs/" + job_id).json()['vertices']
+vertices_id_list = []
+for vertex in vertices:
+    vertices_id_list.append(vertex['id'])
+
+print("Vertices ID = %s" % vertices_id_list)
+
+#kill flink job
+print("Killing the flink job...")
+requests.patch(flink_api_address + "/jobs/" + job_id)
+print("Evaluation finished.")
+
+
+
