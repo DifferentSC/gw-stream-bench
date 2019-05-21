@@ -65,7 +65,7 @@ public class Worker implements Runnable {
                     if (activeTimeMap.get(selectedKey).second() <= timestamp) {
                         //if selected key has been triggered(session gap passed), write read marker
                         if (timestamp - activeTimeMap.get(selectedKey).second() >= LargeScaleWindowSimul.sessionGap) {
-                            logFiles.get(selectedKey % 4).write(selectedKey, null);
+                            logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, null);
                         }
 
                         //defer selected key's active time
@@ -86,8 +86,10 @@ public class Worker implements Runnable {
 
                 //final byte[] serializedTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
 
-                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul .serializedTimestamps.get((int)(long)timestamp));
-                logFiles.get(selectedKey % 4).write(selectedKey, serializedElement);
+                final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int)(long)timestamp));
+
+		//System.out.println("WRITE key: "+selectedKey+", element: "+serializedElement);
+		logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
 
                 //if it is max timestamp of the key, save it to keyToMaxTimestamp

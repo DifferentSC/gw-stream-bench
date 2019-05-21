@@ -16,13 +16,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LogFileStore<K> {
     static Path savedMaxTimeStampFilePath;
     static Path metadataLogFilePath;
     static Path logFilePath;
 
-    static Map<Integer, List<byte[]>> writeBuffer = new HashMap<>();
+    static Map<Integer, List<byte[]>> writeBuffer = new ConcurrentHashMap<>();
     static int pendingWrites = 0;
 
     //Constructor
@@ -36,13 +37,25 @@ public class LogFileStore<K> {
         this.logFilePath = logFilePath;
     }
 
-    static void write(Integer currentKey, byte[] currentElement) {
-        List<byte[]> wbForKey = writeBuffer.get(currentKey);
+    static void write(Integer currentKey, final byte[] currentElement) {
+
+	//writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<byte[]>());
+	//System.out.println("null so add new Arraylist");
+	List<byte[]> wbForKey = writeBuffer.get(currentKey);
+	if(wbForKey == null)
+		wbForKey = new ArrayList<>();
+
         if (currentElement == null) {
             wbForKey.clear();
             wbForKey.add(null);
         } else {
-            wbForKey.add(currentElement);
+	    //if(wbForKey == null)
+	    //System.out.println("wbForKet null");
+
+	    synchronized(wbForKey){
+                wbForKey.add(currentElement);
+	    }
+
             pendingWrites += 1;
             if (pendingWrites > 10000) {
                 clearWriteBuffer();
@@ -54,16 +67,20 @@ public class LogFileStore<K> {
         try (final DataOutputStream metadataFileOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(metadataLogFilePath.toFile(), true)));
              final BufferedOutputStream groupFileOut = new BufferedOutputStream(
-                     new FileOutputStream(logFilePath.toFile(), true))
+                new FileOutputStream(logFilePath.toFile(), true))
         ){
             for (final Map.Entry<Integer, List<byte[]>> entry: writeBuffer.entrySet()) {
                 final int key = entry.getKey();
-                final byte[] serializedKey = Worker.getSerializedKey(key);
+
+		final byte[] serializedKey = LargeScaleWindowSimul.serializedKeys.get(key);
 
                 int size = 0;
                 long currentPos = Files.size(logFilePath);
-                for (final byte[] serializedData : entry.getValue()) {
-                    if (serializedData == null) {
+		
+		for(final byte[] serializedData : entry.getValue())
+		{
+
+		     if (serializedData == null) {
                         // Write triggers
                         metadataFileOut.write(serializedKey);
                         metadataFileOut.writeLong(-1L);
@@ -75,12 +92,11 @@ public class LogFileStore<K> {
                         groupFileOut.write(serializedData);
                         size += serializedData.length + 2;
                     }
-                }
+		}
                 if (size != 0) {
                     // Write to metadata log file.
                     metadataFileOut.write(serializedKey);
                     metadataFileOut.writeLong(currentPos);
-                    // metadataFileOut.writeInt(num);
                     metadataFileOut.writeInt(size);
                     currentPos += size;
                 }
