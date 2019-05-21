@@ -48,12 +48,18 @@ public class LogFileStore<K> {
         if (currentElement == null) {
             wbForKey.clear();
             wbForKey.add(null);
+	    synchronized(writeBuffer){
+	    	writeBuffer.put(currentKey, wbForKey);
+	    }
         } else {
 	    //if(wbForKey == null)
 	    //System.out.println("wbForKet null");
 
 	    synchronized(wbForKey){
-                wbForKey.add(currentElement);
+	        wbForKey.add(currentElement);
+		synchronized(writeBuffer){
+		    writeBuffer.put(currentKey, wbForKey);
+		}
 	    }
 
             pendingWrites += 1;
@@ -77,7 +83,7 @@ public class LogFileStore<K> {
                 int size = 0;
                 long currentPos = Files.size(logFilePath);
 		
-		for(final byte[] serializedData : entry.getValue())
+		for(byte[] serializedData : entry.getValue())
 		{
 
 		     if (serializedData == null) {
