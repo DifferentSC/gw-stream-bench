@@ -208,25 +208,29 @@ public class LargeScaleWindowSimul {
 
       //delete all files in directory
       System.out.println("clean directory..");
-      try {
-          Files.walkFileTree(logFileDirectoryPath, new SimpleFileVisitor<Path>() {
-          @Override
-          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            System.out.println("delete file: " + file.toString());
-            Files.delete(file);
-            return FileVisitResult.CONTINUE;
-          }
+      if(Files.exists(logFileDirectoryPath))
+      {
+        try {
+            Files.walkFileTree(logFileDirectoryPath, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+              System.out.println("delete file: " + file.toString());
+              Files.delete(file);
+              return FileVisitResult.CONTINUE;
+            }
 
-          @Override
-          public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-            Files.delete(dir);
-            System.out.println("delete dir: " + dir.toString());
-            return FileVisitResult.CONTINUE;
-          }
-        });
-      } catch(IOException e){
-        e.printStackTrace();
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+              Files.delete(dir);
+              System.out.println("delete dir: " + dir.toString());
+              return FileVisitResult.CONTINUE;
+            }
+          });
+        } catch(IOException e){
+          e.printStackTrace();
+        }
       }
+
 
       Files.createDirectories(logFileDirectoryPath);
       //System.out.println("clean directory..");
