@@ -28,3 +28,5 @@ target
 *.yaml
 
 conf/
+.swp
+bytesize*
