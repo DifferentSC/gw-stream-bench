@@ -20,9 +20,8 @@ import org.apache.flink.util.FlinkRuntimeException;
 import org.checkerframework.checker.units.qual.K;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 import akka.japi.Pair;
@@ -202,14 +201,36 @@ public class LargeScaleWindowSimul {
     final String LOG_FILE_NAME_FORMAT = "%d.data.log";
     final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = "%d.maxTimestamp.log";
 
-
     System.out.println("create files..");
     for (int i = 0; i < numThreads; i++)//subtask index
     {
       Path logFileDirectoryPath = Paths.get("/nvme", String.valueOf(i), "window-contents-separate-triggers");
-      Files.createDirectories(logFileDirectoryPath);
+
+      //delete all files in directory
       System.out.println("clean directory..");
-      FileUtils.cleanDirectory(logFileDirectoryPath.getFileName());
+      try {
+          Files.walkFileTree(logFileDirectoryPath, new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            System.out.println("delete file: " + file.toString());
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+          }
+
+          @Override
+          public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            Files.delete(dir);
+            System.out.println("delete dir: " + dir.toString());
+            return FileVisitResult.CONTINUE;
+          }
+        });
+      } catch(IOException e){
+        e.printStackTrace();
+      }
+
+      Files.createDirectories(logFileDirectoryPath);
+      //System.out.println("clean directory..");
+      //FileUtils.cleanDirectory(logFileDirectoryPath.getFileName());
 
       for (int j = 0; j < groupNum; j++)//group number
       {
