@@ -24,6 +24,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import akka.japi.Pair;
 
+import org.apache.commons.io.FileUtils;
+
 public class LargeScaleWindowSimul {
 
     static ArrayList<byte[]> serializedKeys =new ArrayList<>();
@@ -139,7 +141,7 @@ public class LargeScaleWindowSimul {
         timestampSerializer = new LongSerializer();
         timestampSerializationStream = new ByteArrayOutputStreamWithPos(128);
         timestampSerializationDataOutputView = new DataOutputViewStreamWrapper(timestampSerializationStream);
-        //serializedTimestamps =new ArrayList<>();
+        serializedTimestamps =new ArrayList<>();
 
         //generate margins
         final Random random = new Random();
@@ -159,67 +161,90 @@ public class LargeScaleWindowSimul {
             } catch(IOException e){
                 e.printStackTrace();
             }
+	    keySerializationStream.reset();
             final byte[] serializedKey = keySerializationStream.toByteArray();
+	    //System.out.println("serializedKey: "+serializedKey+"(length:"+serializedKey.length+")");
             serializedKeys.add(serializedKey);
 
             //serialize margins
             try{
+		marginSerializationStream.reset();
                 marginSerializer.serialize(marginList.get(random.nextInt(marginList.size())), marginSerializationDataOutputView);
             } catch(IOException e){
                 e.printStackTrace();
             }
             final byte[] serializedMargin = marginSerializationStream.toByteArray();
+	    //System.out.println("serializedMargin: "+serializedMargin+"(length:"+serializedMargin.length+")");
             serializedMargins.add(serializedMargin);
         }
 
 	System.out.println("generate timestamps");
-
 	for(int i = 0; i < windowSize * 1000; i++) {
 
             //serialize timestamps
             try {
+		timestampSerializationStream.reset();
                 timestampSerializer.serialize((long) i, timestampSerializationDataOutputView);
             } catch(IOException e){
                 e.printStackTrace();
             }
             final byte[] serializedTimestamp = timestampSerializationStream.toByteArray();
-            serializedTimestamps.add(serializedTimestamp);
+	    //System.out.println("serializedTimestamp: "+serializedTimestamp+"(length:"+serializedTimestamp.length+")");
+	    serializedTimestamps.add(serializedTimestamp);
         }
-	
 
-        //create log, metadata, timestamp files
+	//create log, metadata, timestamp files
         //subtask index:0~7, groupNum:0~3(%4)
-        final String META_DATA_LOG_FILE_NAME_FORMAT = ".meta.log";
-        final String LOG_FILE_NAME_FORMAT = ".data.log";
-        final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
+        final String META_DATA_LOG_FILE_NAME_FORMAT = "%d.meta.log";
+        final String LOG_FILE_NAME_FORMAT = "%d.data.log";
+        final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = "%d.maxTimestamp.log";
+
 
 	System.out.println("create files..");
         for(int i=0; i < numThreads ; i++)//subtask index
         {
-            for(int j=0; j < groupNum ; j++)//group number
+            Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(i), "window-contents-separate-triggers");
+	    Files.createDirectories(logFileDirectoryPath);
+	    System.out.println("clean directory..");
+	    FileUtils.cleanDirectory(logFileDirectoryPath.getFileName());
+
+	    for(int j=0; j < groupNum ; j++)//group number
             {
                 String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
                 String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
                 String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, String.valueOf(j));
 
-                Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(i), "window-contents-separate-triggers");
                 Path logFilePath = Paths.get(logFileDirectoryPath.toString(), groupFileName);
                 Path metadataLogFilePath = Paths.get(logFileDirectoryPath.toString(), metadataFileName);
                 Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(), maxTimeStampFileName);
+		
+		try{
+		    if(!Files.exists(logFilePath))
+		    {
+                        Files.createFile(logFilePath);
+                    }
 
-                Files.createDirectories(logFilePath.getParent());
-                Files.createFile(metadataLogFilePath);
-                Files.createFile(logFilePath);
-                Files.createFile(savedMaxTimeStampFilePath );
+		    if(!Files.exists(metadataLogFilePath))
+		    {
+		        Files.createFile(metadataLogFilePath);
+		    }
+
+		    if(!Files.exists(savedMaxTimeStampFilePath))
+		    {
+		        Files.createFile(savedMaxTimeStampFilePath);
+		    }
+	
+		} catch(final IOException e){
+			throw new FlinkRuntimeException("Failed to create file", e);
+		}
             }
         }
 
-	System.out.println("read newpath txt");
+	System.out.println("\nRead newpath txt...");
         //per subtask, array of keys belonging to it
         Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();
         try{
-	    System.out.println("opening newpath file....");
-            File file = new File("/newpath.txt");
+            File file = new File("newpath.txt");
             FileReader filereader = new FileReader(file);
             BufferedReader bufReader = new BufferedReader(filereader);
             String line = "";
@@ -251,7 +276,7 @@ public class LargeScaleWindowSimul {
             //System.out.println(e);
         }
 
-	System.out.println("create threads");
+	System.out.println("\nCreate threads");
         Thread[] threads = new Thread[numThreads];//number of subtasks
         //create threads
         for(int i=0;i < numThreads; i++)

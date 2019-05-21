@@ -15,11 +15,12 @@ with open(args.config_file_path, "r") as stream:
 
 # Print the read configurations
 print(configs)
-
+"""
 slack_webhook_url = 'https://hooks.slack.com/services/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'
 
 requests.post(slack_webhook_url,
               json={"text": str(configs)})
+"""
 
 # flink settings
 flink_api_address = configs['flink.api.address']
@@ -53,7 +54,15 @@ flink_large_scale_command_line = [
 """
 
 java_large_scale_command_line = [
-    "java", "-jar",
+    "java", 
+    "-jar",
+    "-Xms512m",
+    "-Xmx4g",
+    "-Xloggc:gc_memory_logs.log",
+    "-XX:+PrintGCDetails",
+    "-XX:+PrintGCTimeStamps",
+    "-XX:NewRatio=2",
+    "-XX:-UseAdaptiveSizePolicy",
     "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
     "-w", window_size,
     "-k", num_keys,
@@ -68,13 +77,15 @@ java_large_scale_command_line = [
 ]
 
 
-print("submit the query to flink. Command line = "+str(flink_large_scale_command_line)+"\n")
-submit_query = subprocess.Popen(flink_large_scale_command_line)
-time.sleep(5)
+print("Java job. Command line = "+str(java_large_scale_command_line)+"\n")
+submit_query = subprocess.Popen(java_large_scale_command_line)
+time.sleep(100)
 
+"""
 #check whether flink job is running
 print("\nChecking jobs...")
 jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
+print("after request get\n");
 job_id_list = []
 for job in jobs:
     if job['status'] == 'RUNNING':
@@ -100,5 +111,5 @@ print("Killing the flink job...")
 requests.patch(flink_api_address + "/jobs/" + job_id)
 print("Evaluation finished.")
 
-
+"""
 
