@@ -57,9 +57,9 @@ public class LogFileStore<K> {
 
       synchronized (wbForKey) {
         wbForKey.add(currentElement);
-        synchronized (writeBuffer) {
+      }
+      synchronized (writeBuffer) {
           writeBuffer.put(currentKey, wbForKey);
-        }
       }
 
       pendingWrites += 1;
@@ -116,7 +116,10 @@ public class LogFileStore<K> {
       }
       throw new FlinkRuntimeException("Exception occurred while writing log files! " + builder.toString());
     } finally {
-      writeBuffer.clear();
+      
+      synchronized(writeBuffer){
+          writeBuffer.clear();
+      }
       pendingWrites = 0;
     }
   }
