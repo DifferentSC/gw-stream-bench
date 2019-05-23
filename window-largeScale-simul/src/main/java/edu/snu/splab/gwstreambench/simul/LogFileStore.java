@@ -1,21 +1,10 @@
 package edu.snu.splab.gwstreambench.simul;
 
-import org.apache.flink.api.common.typeutils.TypeSerializer;
-import org.apache.flink.api.common.typeutils.base.LongSerializer;
-//import org.apache.flink.contrib.streaming.state.io.InputStreamDataInputView;
-import org.apache.flink.core.memory.ByteArrayOutputStreamWithPos;
-import org.apache.flink.core.memory.DataOutputView;
-import org.apache.flink.core.memory.DataOutputViewStreamWrapper;
-import org.apache.flink.runtime.memory.MemoryManager;
 import org.apache.flink.util.FlinkRuntimeException;
-
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LogFileStore<K> {
@@ -38,18 +27,16 @@ public class LogFileStore<K> {
   }
 
 
-  static void write(Integer currentKey, final byte[] currentElement) {
+  void write(Integer currentKey, final byte[] currentElement) {
     List<byte[]> wbForKey;
     synchronized (writeBuffer) {
       writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
-
       wbForKey = writeBuffer.get(currentKey);
-
     }
-
+/*
     if (wbForKey == null) {
       System.out.println("wbfor key Null!");
-    }
+    }*/
 
     if (currentElement == null) {
       wbForKey.clear();
@@ -90,7 +77,7 @@ public class LogFileStore<K> {
               metadataFileOut.writeLong(-1L);
               metadataFileOut.writeInt(-1);
             } else {
-	      System.out.println("write to file: "+logFilePath.toString());
+	      System.out.println("write to file: "+logFilePath.toString()+" "+this.logFilePath.toString());
      	      groupFileOut.write(serializedData.length / 256);
               groupFileOut.write(serializedData.length % 256);
               // Write to value log file.
