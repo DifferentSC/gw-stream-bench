@@ -39,35 +39,35 @@ public class LogFileStore<K> {
 
 
   static void write(Integer currentKey, final byte[] currentElement) {
-      //System.out.println("BEFORE"+writeBuffer.get(currentKey));
-      List<byte[]> wbForKey;
-      synchronized(writeBuffer){
-        writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
-      
-        wbForKey = writeBuffer.get(currentKey);
-      
-      }
+    //System.out.println("BEFORE"+writeBuffer.get(currentKey));
+    List<byte[]> wbForKey;
+    synchronized (writeBuffer) {
+      writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
 
-      //System.out.println("AFTER"+writeBuffer.get(currentKey));
+      wbForKey = writeBuffer.get(currentKey);
 
-      if (wbForKey == null){
-        System.out.println("wbfor key Null!");      
-      }
+    }
 
-      if (currentElement == null) {
-        wbForKey.clear();
-        synchronized (writeBuffer) {
-          wbForKey.add(null);
-        }
-      } else {
-        synchronized (writeBuffer) {
-          wbForKey.add(currentElement);
-        }
-        pendingWrites += 1;
-        if (pendingWrites > 10000) {
-          clearWriteBuffer();
-        }
+    //System.out.println("AFTER"+writeBuffer.get(currentKey));
+
+    if (wbForKey == null) {
+      System.out.println("wbfor key Null!");
+    }
+
+    if (currentElement == null) {
+      wbForKey.clear();
+      synchronized (writeBuffer) {
+        wbForKey.add(null);
       }
+    } else {
+      synchronized (writeBuffer) {
+        wbForKey.add(currentElement);
+      }
+      pendingWrites += 1;
+      if (pendingWrites > 10000) {
+        clearWriteBuffer();
+      }
+    }
   }
 
   static void clearWriteBuffer() {
@@ -76,38 +76,39 @@ public class LogFileStore<K> {
          final BufferedOutputStream groupFileOut = new BufferedOutputStream(
            new FileOutputStream(logFilePath.toFile(), true))
     ) {
-      synchronized(writeBuffer){
-      for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
-        final int key = entry.getKey();
+      synchronized (writeBuffer) {
+        for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
+          final int key = entry.getKey();
 
-        final byte[] serializedKey = LargeScaleWindowSimul.serializedKeys.get(key);
+          final byte[] serializedKey = LargeScaleWindowSimul.serializedKeys.get(key);
 
-        int size = 0;
-        long currentPos = Files.size(logFilePath);
+          int size = 0;
+          long currentPos = Files.size(logFilePath);
 
-        for (final byte[] serializedData : entry.getValue()) {
+          for (final byte[] serializedData : entry.getValue()) {
 
-          if (serializedData == null) {
-            // Write triggers
+            if (serializedData == null) {
+              // Write triggers
+              metadataFileOut.write(serializedKey);
+              metadataFileOut.writeLong(-1L);
+              metadataFileOut.writeInt(-1);
+            } else {
+              groupFileOut.write(serializedData.length / 256);
+              groupFileOut.write(serializedData.length % 256);
+              // Write to value log file.
+              groupFileOut.write(serializedData);
+              size += serializedData.length + 2;
+            }
+          }
+          if (size != 0) {
+            // Write to metadata log file.
             metadataFileOut.write(serializedKey);
-            metadataFileOut.writeLong(-1L);
-            metadataFileOut.writeInt(-1);
-          } else {
-            groupFileOut.write(serializedData.length / 256);
-            groupFileOut.write(serializedData.length % 256);
-            // Write to value log file.
-            groupFileOut.write(serializedData);
-            size += serializedData.length + 2;
+            metadataFileOut.writeLong(currentPos);
+            metadataFileOut.writeInt(size);
+            currentPos += size;
           }
         }
-        if (size != 0) {
-          // Write to metadata log file.
-          metadataFileOut.write(serializedKey);
-          metadataFileOut.writeLong(currentPos);
-          metadataFileOut.writeInt(size);
-          currentPos += size;
-        }
-      }}
+      }
     } catch (final IOException e) {
       final StringBuilder builder = new StringBuilder();
       for (final StackTraceElement element : e.getStackTrace()) {
