@@ -37,6 +37,7 @@ public class LogFileStore<K> {
     this.logFilePath = logFilePath;
   }
 
+
   static void write(Integer currentKey, final byte[] currentElement) {
       writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<byte[]>());
       List<byte[]> wbForKey = writeBuffer.get(currentKey);
@@ -105,8 +106,12 @@ public class LogFileStore<K> {
       }
       throw new FlinkRuntimeException("Exception occurred while writing log files! " + builder.toString());
     } finally {
-      writeBuffer.clear();
+
+      synchronized (writeBuffer) {
+        writeBuffer.clear();
+      }
       pendingWrites = 0;
+
     }
   }
 
