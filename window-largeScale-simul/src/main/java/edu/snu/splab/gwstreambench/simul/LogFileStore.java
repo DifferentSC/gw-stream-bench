@@ -39,10 +39,20 @@ public class LogFileStore<K> {
 
 
   static void write(Integer currentKey, final byte[] currentElement) {
-      writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<byte[]>());
-      List<byte[]> wbForKey = writeBuffer.get(currentKey);
-      if (wbForKey == null)
-        wbForKey = new ArrayList<>();
+      //System.out.println("BEFORE"+writeBuffer.get(currentKey));
+      List<byte[]> wbForKey;
+      synchronized(writeBuffer){
+        writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
+      
+        wbForKey = writeBuffer.get(currentKey);
+      
+      }
+
+      //System.out.println("AFTER"+writeBuffer.get(currentKey));
+
+      if (wbForKey == null){
+        System.out.println("wbfor key Null!");      
+      }
 
       if (currentElement == null) {
         wbForKey.clear();
@@ -52,7 +62,6 @@ public class LogFileStore<K> {
       } else {
         synchronized (writeBuffer) {
           wbForKey.add(currentElement);
-          System.out.println("wbforkey: " + wbForKey + "writeBuffer: " + writeBuffer.get(currentKey));
         }
         pendingWrites += 1;
         if (pendingWrites > 10000) {
@@ -67,6 +76,7 @@ public class LogFileStore<K> {
          final BufferedOutputStream groupFileOut = new BufferedOutputStream(
            new FileOutputStream(logFilePath.toFile(), true))
     ) {
+      synchronized(writeBuffer){
       for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
         final int key = entry.getKey();
 
@@ -97,7 +107,7 @@ public class LogFileStore<K> {
           metadataFileOut.writeInt(size);
           currentPos += size;
         }
-      }
+      }}
     } catch (final IOException e) {
       final StringBuilder builder = new StringBuilder();
       for (final StackTraceElement element : e.getStackTrace()) {
