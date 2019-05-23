@@ -8,9 +8,9 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class Worker implements Runnable {
-    final String META_DATA_LOG_FILE_NAME_FORMAT = ".meta.log";
-    final String LOG_FILE_NAME_FORMAT = ".data.log";
-    final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = ".maxTimestamp.log";
+    final String META_DATA_LOG_FILE_NAME_FORMAT = "%d.meta.log";
+    final String LOG_FILE_NAME_FORMAT = "%d.data.log";
+    final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = "%d.maxTimestamp.log";
 
     int subtaskNum;
     ArrayList<Integer> keysofThisSubtask;
@@ -28,9 +28,9 @@ public class Worker implements Runnable {
         ArrayList<LogFileStore> logFiles = new ArrayList<>();
         for (int j = 0 ; j < LargeScaleWindowSimul.groupNum; j++)//group number
         {
-            String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
-            String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
-            String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, String.valueOf(j));
+            String groupFileName = String.format(LOG_FILE_NAME_FORMAT, j);
+            String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, j);
+            String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, j);
 
             Path logFileDirectoryPath = Paths.get("/nvme",String.valueOf(this.subtaskNum), "window-contents-separate-triggers");
             Path logFilePath = Paths.get(logFileDirectoryPath.toString(), groupFileName);

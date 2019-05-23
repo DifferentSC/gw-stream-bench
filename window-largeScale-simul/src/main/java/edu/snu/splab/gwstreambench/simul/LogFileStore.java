@@ -39,7 +39,6 @@ public class LogFileStore<K> {
 
 
   static void write(Integer currentKey, final byte[] currentElement) {
-    //System.out.println("BEFORE"+writeBuffer.get(currentKey));
     List<byte[]> wbForKey;
     synchronized (writeBuffer) {
       writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
@@ -47,8 +46,6 @@ public class LogFileStore<K> {
       wbForKey = writeBuffer.get(currentKey);
 
     }
-
-    //System.out.println("AFTER"+writeBuffer.get(currentKey));
 
     if (wbForKey == null) {
       System.out.println("wbfor key Null!");
@@ -93,7 +90,8 @@ public class LogFileStore<K> {
               metadataFileOut.writeLong(-1L);
               metadataFileOut.writeInt(-1);
             } else {
-              groupFileOut.write(serializedData.length / 256);
+	      System.out.println("write to file: "+logFilePath.toString());
+     	      groupFileOut.write(serializedData.length / 256);
               groupFileOut.write(serializedData.length % 256);
               // Write to value log file.
               groupFileOut.write(serializedData);
