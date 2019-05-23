@@ -19,9 +19,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LogFileStore<K> {
-  static Path savedMaxTimeStampFilePath;
-  static Path metadataLogFilePath;
-  static Path logFilePath;
+  Path savedMaxTimeStampFilePath;
+  Path metadataLogFilePath;
+  Path logFilePath;
 
   static Map<Integer, List<byte[]>> writeBuffer = new ConcurrentHashMap<>();
   static int pendingWrites = 0;
@@ -67,11 +67,11 @@ public class LogFileStore<K> {
     }
   }
 
-  static void clearWriteBuffer() {
+  void clearWriteBuffer() {
     try (final DataOutputStream metadataFileOut = new DataOutputStream(new BufferedOutputStream(
-      new FileOutputStream(metadataLogFilePath.toFile(), true)));
+      new FileOutputStream(this.metadataLogFilePath.toFile(), true)));
          final BufferedOutputStream groupFileOut = new BufferedOutputStream(
-           new FileOutputStream(logFilePath.toFile(), true))
+           new FileOutputStream(this.logFilePath.toFile(), true))
     ) {
       synchronized (writeBuffer) {
         for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
@@ -124,10 +124,10 @@ public class LogFileStore<K> {
     }
   }
 
-  static void writeTimestampToFile(ArrayList<Integer> keysofThisSubtask, int groupNum, HashMap<Integer, Long> keyToMaxTimestamp) {
+  void writeTimestampToFile(ArrayList<Integer> keysofThisSubtask, int groupNum, HashMap<Integer, Long> keyToMaxTimestamp) {
     //write max timestamp to file
     try (final DataOutputStream timestampFileOut = new DataOutputStream(new BufferedOutputStream(
-      new FileOutputStream(savedMaxTimeStampFilePath.toFile(), true)));
+      new FileOutputStream(this.savedMaxTimeStampFilePath.toFile(), true)));
     ) {
       for (Integer i = 0; i < keysofThisSubtask.size(); i++) {
         final Integer key = keysofThisSubtask.get(i);
