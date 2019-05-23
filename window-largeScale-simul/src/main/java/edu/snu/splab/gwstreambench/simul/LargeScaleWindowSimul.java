@@ -309,9 +309,12 @@ public class LargeScaleWindowSimul {
     }
 
     //join threads
+    System.out.println("\nJoin threads");
     for (int i = 0; i < numThreads; i++) {
       threads[i].join();
     }
+
+    System.out.println("\nprogram finished");
   }
 
 
