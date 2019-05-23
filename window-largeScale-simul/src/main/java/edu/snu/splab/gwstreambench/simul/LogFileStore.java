@@ -38,9 +38,9 @@ public class LogFileStore<K> {
     }
 
     static void write(Integer currentKey, final byte[] currentElement) {
-
-	//writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<byte[]>());
-	//System.out.println("null so add new Arraylist");
+	sybnchronized(writeBuffer)
+	{
+		writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<byte[]>());
 	List<byte[]> wbForKey = writeBuffer.get(currentKey);
 	if(wbForKey == null)
 		wbForKey = new ArrayList<>();
@@ -49,18 +49,16 @@ public class LogFileStore<K> {
             wbForKey.clear();
             wbForKey.add(null);
         } else {
-	    //if(wbForKey == null)
-	    //System.out.println("wbForKet null");
-
-	    synchronized(wbForKey){
-                wbForKey.add(currentElement);
-	    }
+            wbForKey.add(currentElement);
+	    System.out.println("wbforkey: "+wbForKey+"writeBuffer: "+writeBuffer.get(currentKey));
 
             pendingWrites += 1;
             if (pendingWrites > 10000) {
                 clearWriteBuffer();
             }
         }
+
+	}
     }
 
     static void clearWriteBuffer() {

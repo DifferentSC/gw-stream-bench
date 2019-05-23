@@ -238,9 +238,9 @@ public class LargeScaleWindowSimul {
 
       for (int j = 0; j < groupNum; j++)//group number
       {
-        String groupFileName = String.format(LOG_FILE_NAME_FORMAT, String.valueOf(j));
-        String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, String.valueOf(j));
-        String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, String.valueOf(j));
+        String groupFileName = String.format(LOG_FILE_NAME_FORMAT, j);
+        String metadataFileName = String.format(META_DATA_LOG_FILE_NAME_FORMAT, j);
+        String maxTimeStampFileName = String.format(SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT, j);
 
         Path logFilePath = Paths.get(logFileDirectoryPath.toString(), groupFileName);
         Path metadataLogFilePath = Paths.get(logFileDirectoryPath.toString(), metadataFileName);
