@@ -117,7 +117,7 @@ public class LogFileStore<K> {
         if (key % LargeScaleWindowSimul.groupNum == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
         {
           final Long maxTimestamp = keyToMaxTimestamp.get(key);
-          timestampFileOut.write(key);
+          timestampFileOut.write(LargeScaleWindowSimul.serializedKeys.get(key));
           timestampFileOut.write(LargeScaleWindowSimul.serializedTimestamps.get((int) (long) maxTimestamp));
         }
       }
