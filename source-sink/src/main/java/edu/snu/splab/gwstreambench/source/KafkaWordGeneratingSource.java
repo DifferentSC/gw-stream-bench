@@ -56,9 +56,9 @@ public class KafkaWordGeneratingSource {
     options.addOption(sessionGapOption);
 
     //for large window
-    final Option checkpointEndTimeOption = new Option("ch", true, "The checkpoint end time");
-    checkpointEndTimeOption.setRequired(false);
-    options.addOption(checkpointEndTimeOption);
+    final Option timeDifferenceOption = new Option("td", true, "The time difference between current time and checkpoint end time");
+    timeDifferenceOption.setRequired(false);
+    options.addOption(timeDifferenceOption);
 
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
@@ -79,7 +79,9 @@ public class KafkaWordGeneratingSource {
     final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
     final int marginSize = Integer.valueOf(cmd.getOptionValue("m"));
     final String wordGeneratorString = cmd.getOptionValue("w");
-    Long checkpointEndTime = Long.valueOf(cmd.getOptionValue("ch"));
+    Long timeDiff = Long.valueOf(cmd.getOptionValue("td"));
+    if(timeDiff == null)
+      timeDiff = 0L;
 
     final Random random = new Random();
     final List<String> marginList = new ArrayList<>();
@@ -116,12 +118,6 @@ public class KafkaWordGeneratingSource {
       throw new IllegalArgumentException("Word generator should be one of uniform / zipfian / uniform-session!");
     }
 
-    final long timeDiff;
-    if (checkpointEndTime != null) {
-      timeDiff = System.currentTimeMillis() - checkpointEndTime;
-    } else{
-      timeDiff = 0;
-    }
 
     // Start timer threads.
     for (int i = 0; i < numThreads; i++) {

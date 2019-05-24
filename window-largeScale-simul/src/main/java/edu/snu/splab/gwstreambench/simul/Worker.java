@@ -72,6 +72,7 @@ public class Worker implements Runnable {
               logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, null);
             }
 
+
             //defer selected key's active time
             Long newFirst = activeTimeMap.get(selectedKey).second() + LargeScaleWindowSimul.inactiveTime;
             Pair<Long, Long> pair = new Pair<>(newFirst, newFirst + random.nextInt(LargeScaleWindowSimul.averageSessionTerm * 2));

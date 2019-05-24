@@ -147,6 +147,25 @@ sink_command_line = [
 ]
 """
 
+java_large_scale_command_line_prefix = [
+    "java",
+    "-jar",
+    "-Xms512m",
+    "-Xmx4g",
+    "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
+    "-w", str(configs['query.artificial.window.size']),
+    "-k", key_num,
+    "-m", value_margin,
+    "-g", str(configs['streamix.file_num']),
+    "-t", parallelism,
+    "-ast", str(configs['source.session.average_term']),
+    "-sg", str(configs['query.window.session.gap']),
+    "-i", str(configs['source.session.gap']),
+    "-sst", configs['streamix.path'],
+]
+
+
+
 source_process = None
 
 status = "pass"
@@ -156,9 +175,33 @@ p95_deadline = 25000
 try:
     while failure_count < 5:
 
+        #run artificial window
         if artificial_window:
-            """ TODO: Make artificial window on streamix-w """
+            java_large_scale_command_line = java_large_scale_command_line_prefix + [
+                "-d", str(current_event_rate)
+            ]
+            run_artificial_window = subprocess.call(java_large_scale_command_line)
 
+        source_command_line = source_command_line_prefix + [
+            "-r", str(current_event_rate)
+        ]
+
+        if artificial_window :
+            time_diff_flink = int(time.time()*1000.0)
+            time_diff_src = time_diff_flink - int(configs['query.artificial.window.size'])*1000
+            source_command_line += [
+                "-td", str(time_diff_src)
+            ]
+            flink_command_line += [
+                "--time_diff", str(time_diff_flink)
+            ]
+
+        print("Start source process...")
+        # Start the source process
+        print("Source commandline = %s " % str(source_command_line))
+        source_process = subprocess.Popen(source_command_line)
+
+        # Start Flink job
         print("Submit the query the flink. Command line = " + str(flink_command_line))
         # Submit the query to flink
         submit_query = subprocess.Popen(flink_command_line)
@@ -185,20 +228,16 @@ try:
 
         print("Vertices ID = %s" % vertices_id_list)
 
-
         print("Current Thp = %d" % current_event_rate)
         requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
-        source_command_line = source_command_line_prefix + [
-            "-r", str(current_event_rate)
-        ]
-        print("Start source process...")
-        # Start the source process
-        print("Source commandline = %s " % str(source_command_line))
-        source_process = subprocess.Popen(source_command_line)
+
+
         # Wait for the designated time
         print("Waiting for %d secs..." % time_wait)
         time.sleep(time_wait)
+
+
         # Start the sink process
         print("Measure latency for %d secs..." % time_running)
         # sink_process = subprocess.call(sink_command_line)
@@ -312,6 +351,10 @@ try:
 
         current_event_rate += rate_increase
 
+        print("Killing the flink job...")
+        requests.patch(flink_api_address + "/jobs/" + job_id)
+
+
 except:
     print("Killing the source process and the flink job...")
     if source_process is not None:
@@ -322,6 +365,4 @@ except:
                   json={"text": "Evaluation interrupted!"})
     raise
 
-print("Killing the flink job...")
-requests.patch(flink_api_address + "/jobs/" + job_id)
 print("Evaluation finished.")
