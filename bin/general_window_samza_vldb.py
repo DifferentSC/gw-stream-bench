@@ -43,11 +43,26 @@ time_wait = int(configs['exp.wait_time'])
 time_running = int(configs['exp.running_time'])
 backpressure_threshold = float(configs['exp.backpressure_threshold'])
 parallelism = int(configs['exp.parallelism'])
+artificial_window = configs.get('exp.artificial_window', False)
+
+is_event_time = configs.get('eventtime.enabled', False)
+
+if artificial_window and not is_event_time:
+    print("eventtime.enabled should be set to True when artificial window is enabled")
+    exit(0)
+
+if is_event_time:
+    watermark_interval = configs['eventtime.watermark.interval']
+    max_out_of_orderness = configs['eventtime.max_out_of_orderness']
+
+else:
+
 # latency_deadline = int(configs['exp.latency_deadline'])
 slope_threshold = 10
 
 query = configs['query']
 state_backend = configs['state_backend']
+
 
 # submit the query firstly to flink
 flink_command_line = [
@@ -57,7 +72,8 @@ flink_command_line = [
     "--zookeeper_address", zookeeper_address,
     "--query_type", str(query),
     "--state_backend", state_backend,
-    "--parallelism", str(parallelism)
+    "--parallelism", str(parallelism),
+    "--is_event_time", str(is_event_time)
 ]
 
 if query == "session-window":
@@ -88,31 +104,10 @@ elif state_backend == "streamix":
         "--file_num", str(configs['streamix.file_num'])
     ]
 
-print("Submit the query the flink. Command line = " + str(flink_command_line))
-# Submit the query to flink
-submit_query = subprocess.Popen(flink_command_line)
-time.sleep(5)
-
-jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
-job_id_list = []
-for job in jobs:
-    if job['status'] == 'RUNNING':
-        job_id_list.append(job['id'])
-
-if len(job_id_list) > 1:
-    print("There are %d jobs running. Terminate others before start" % len(job_id_list))
-    exit(0)
-
-job_id = job_id_list[0]
-
-print("Job ID = %s" % job_id)
-
-vertices = requests.get(flink_api_address + "/jobs/" + job_id).json()['vertices']
-vertices_id_list = []
-for vertex in vertices:
-    vertices_id_list.append(vertex['id'])
-
-print("Vertices ID = %s" % vertices_id_list)
+if is_event_time:
+    flink_command_line += [
+        "--watermark_interval", str(watermark_interval)
+    ]
 
 current_event_rate = rate_init
 success = True
@@ -154,25 +149,43 @@ sink_command_line = [
 
 source_process = None
 
-# Monitor backpressure to initiate sampling
-backpressure_map = {}
-
-for vertex_id in vertices_id_list:
-    backpressure = requests.get(flink_api_address +
-                                "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-    while backpressure['status'] == 'deprecated':
-        print("Sleep for 5 seconds to get backpressure samples...")
-        time.sleep(5)
-        backpressure = requests.get(flink_api_address +
-                                    "/jobs/" + job_id + "/vertices/" + vertex_id + "/backpressure").json()
-    backpressure_map[vertex_id] = []
-
 status = "pass"
 failure_count = 0
 p95_deadline = 25000
 
 try:
     while failure_count < 5:
+
+        if artificial_window:
+            """ TODO: Make artificial window on streamix-w """
+
+        print("Submit the query the flink. Command line = " + str(flink_command_line))
+        # Submit the query to flink
+        submit_query = subprocess.Popen(flink_command_line)
+        time.sleep(5)
+
+        jobs = requests.get(flink_api_address + "/jobs").json()["jobs"]
+        job_id_list = []
+        for job in jobs:
+            if job['status'] == 'RUNNING':
+                job_id_list.append(job['id'])
+
+        if len(job_id_list) > 1:
+            print("There are %d jobs running. Terminate others before start" % len(job_id_list))
+            exit(0)
+
+        job_id = job_id_list[0]
+
+        print("Job ID = %s" % job_id)
+
+        vertices = requests.get(flink_api_address + "/jobs/" + job_id).json()['vertices']
+        vertices_id_list = []
+        for vertex in vertices:
+            vertices_id_list.append(vertex['id'])
+
+        print("Vertices ID = %s" % vertices_id_list)
+
+
         print("Current Thp = %d" % current_event_rate)
         requests.post(slack_webhook_url,
                       json={"text": "Current throughput = %d" % current_event_rate})
