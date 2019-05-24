@@ -26,10 +26,10 @@ requests.post(slack_webhook_url,
 flink_api_address = configs['flink.api.address']
 
 window_size = str(configs['window.size'])
-num_keys = str(configs['num.keys'])
-margin_size = str(configs['margin.size'])
+key_num = str(configs['num.keys'])
+value_margin = str(configs['margin.size'])
 group_num = str(configs['group.num'])
-num_threads = str(configs['num.threads'])
+parallelism = str(configs['num.threads'])
 average_session_term = str(configs['average.session.term'])
 session_gap = str(configs['session.gap'])
 inactive_time = str(configs['inactive.time'])
@@ -65,10 +65,10 @@ java_large_scale_command_line = [
     "-XX:-UseAdaptiveSizePolicy",
     "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
     "-w", window_size,
-    "-k", num_keys,
-    "-m", margin_size,
+    "-k", key_num,
+    "-m", value_margin,
     "-g", group_num,
-    "-t", num_threads,
+    "-t", parallelism,
     "-ast", average_session_term,
     "-sg", session_gap,
     "-i", inactive_time,

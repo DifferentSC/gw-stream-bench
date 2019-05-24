@@ -30,19 +30,23 @@ public class WordPublishRunner extends TimerTask {
 
   private final Random random;
 
+  private Long timeDiff;
+
   public WordPublishRunner(
-      final Producer<String, String> kafkaProducer,
-      final WordGenerator wordGenerator,
-      final String topicName,
-      final int eventsEmitsPerBatch,
-      final List<String> marginList
-      ) {
+    final Producer<String, String> kafkaProducer,
+    final WordGenerator wordGenerator,
+    final String topicName,
+    final int eventsEmitsPerBatch,
+    final List<String> marginList,
+    final long timeDiff
+  ) {
     this.kafkaProducer = kafkaProducer;
     this.wordGenerator = wordGenerator;
     this.topicName = topicName;
     this.eventsEmitsPerBatch = eventsEmitsPerBatch;
     this.marginList = marginList;
     this.random = new Random();
+    this.timeDiff = timeDiff;
   }
 
   @Override
@@ -50,7 +54,7 @@ public class WordPublishRunner extends TimerTask {
     for (int i = 0; i < eventsEmitsPerBatch; i++) {
       final String word = wordGenerator.getNextWord();
       final String margin = marginList.get(random.nextInt(marginList.size()));
-      final Long timestamp = System.currentTimeMillis()-random.nextInt(5000);//5 seconds late data
+      final Long timestamp = System.currentTimeMillis() - this.timeDiff;
       final String event = String.format("%s %s %d", word, margin, timestamp);
       kafkaProducer.send(new ProducerRecord<>("word", event));
     }

@@ -159,13 +159,12 @@ public class LargeScaleWindowSimul {
     for (int i = 0; i < numKeys; i++) {
       //serialize keys
       try {
+        keySerializationStream.reset();
         keySerializer.serialize(i, keySerializationDataOutputView);
       } catch (IOException e) {
         e.printStackTrace();
       }
-      keySerializationStream.reset();
       final byte[] serializedKey = keySerializationStream.toByteArray();
-      //System.out.println("serializedKey: "+serializedKey+"(length:"+serializedKey.length+")");
       serializedKeys.add(serializedKey);
 
       //serialize margins
@@ -176,11 +175,9 @@ public class LargeScaleWindowSimul {
         e.printStackTrace();
       }
       final byte[] serializedMargin = marginSerializationStream.toByteArray();
-      //System.out.println("serializedMargin: "+serializedMargin+"(length:"+serializedMargin.length+")");
       serializedMargins.add(serializedMargin);
     }
 
-    System.out.println("generate timestamps");
     for (int i = 0; i < windowSize * 1000; i++) {
 
       //serialize timestamps
@@ -201,7 +198,6 @@ public class LargeScaleWindowSimul {
     final String LOG_FILE_NAME_FORMAT = "%d.data.log";
     final String SAVED_MAX_TIMESTAMP_FILE_NAME_FORMAT = "%d.maxTimestamp.log";
 
-    System.out.println("create files..");
     for (int i = 0; i < numThreads; i++)//subtask index
     {
       Path logFileDirectoryPath = Paths.get("/nvme", String.valueOf(i), "window-contents-separate-triggers");
@@ -231,11 +227,8 @@ public class LargeScaleWindowSimul {
         }
       }
 
-
+      System.out.println("create directory & files..");
       Files.createDirectories(logFileDirectoryPath);
-      //System.out.println("clean directory..");
-      //FileUtils.cleanDirectory(logFileDirectoryPath.getFileName());
-
       for (int j = 0; j < groupNum; j++)//group number
       {
         String groupFileName = String.format(LOG_FILE_NAME_FORMAT, j);
@@ -258,22 +251,19 @@ public class LargeScaleWindowSimul {
           if (!Files.exists(savedMaxTimeStampFilePath)) {
             Files.createFile(savedMaxTimeStampFilePath);
           }
-
         } catch (final IOException e) {
           throw new FlinkRuntimeException("Failed to create file", e);
         }
       }
     }
 
-    System.out.println("\nRead newpath txt...");
-    //per subtask, array of keys belonging to it
-    Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();
+    System.out.println("\nRead key-subtask mapping info txt...");
+    Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();//per subtask, array of keys belonging to it
     try {
       File file = new File("newpath.txt");
       FileReader filereader = new FileReader(file);
       BufferedReader bufReader = new BufferedReader(filereader);
-      String line = "";
-
+      String line;
       while ((line = bufReader.readLine()) != null) {
         String[] words = line.split(" ");//words[0]:key, words[1]:subtask number
 
@@ -292,17 +282,15 @@ public class LargeScaleWindowSimul {
         }
       }
       bufReader.close();
-
     } catch (FileNotFoundException e) {
       throw new FlinkRuntimeException("Cannot find file", e);
       //System.out.println(e);
     }
 
-    System.out.println("\nCreate threads");
+    System.out.println("\nCreate threads...");
     Thread[] threads = new Thread[numThreads];//number of subtasks
-    //create threads
+    //create threads(per thread, 1 subtask)
     for (int i = 0; i < numThreads; i++) {
-      //per thread, 1 subtask
       Runnable r = new Worker(i, subtaskKeys.get(i));//subtask num & keys belonging to it
       threads[i] = new Thread(r);
       threads[i].start();

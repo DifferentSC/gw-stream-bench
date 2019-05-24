@@ -67,7 +67,6 @@ public class LogFileStore<K> {
           long currentPos = Files.size(logFilePath);
 
           for (final byte[] serializedData : entry.getValue()) {
-
             if (serializedData == null) {
               // Write triggers
               metadataFileOut.write(serializedKey);
@@ -112,17 +111,13 @@ public class LogFileStore<K> {
     try (final DataOutputStream timestampFileOut = new DataOutputStream(new BufferedOutputStream(
       new FileOutputStream(this.savedMaxTimeStampFilePath.toFile(), true)));
     ) {
-
       System.out.println("writeTimestamp to file called: " + this.savedMaxTimeStampFilePath.toString());
       for (Integer i = 0; i < keysofThisSubtask.size(); i++) {
         final Integer key = keysofThisSubtask.get(i);
         if (key % LargeScaleWindowSimul.groupNum == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
         {
           final Long maxTimestamp = keyToMaxTimestamp.get(key);
-
           timestampFileOut.write(key);
-          //LargeScaleWindowSimul.timestampSerializer.serialize((long) maxTimestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
-          //final byte[] serializedMaxTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
           timestampFileOut.write(LargeScaleWindowSimul.serializedTimestamps.get((int) (long) maxTimestamp));
         }
       }

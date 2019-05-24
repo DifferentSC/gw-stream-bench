@@ -19,11 +19,11 @@ public class KafkaWordGeneratingSource {
 
     final Options options = new Options();
 
-    final Option kafkaBrokerAddressOpt = new Option("b", true,"The kafka broker address.");
+    final Option kafkaBrokerAddressOpt = new Option("b", true, "The kafka broker address.");
     kafkaBrokerAddressOpt.setRequired(true);
     options.addOption(kafkaBrokerAddressOpt);
 
-    final Option eventRatePerSecondOption = new Option("r", true,"The event generation rate per second");
+    final Option eventRatePerSecondOption = new Option("r", true, "The event generation rate per second");
     eventRatePerSecondOption.setRequired(true);
     options.addOption(eventRatePerSecondOption);
 
@@ -31,15 +31,15 @@ public class KafkaWordGeneratingSource {
     marginOption.setRequired(true);
     options.addOption(marginOption);
 
-    final Option numThreadsOption = new Option("t", true,"The number of timer threads used for source generation");
+    final Option numThreadsOption = new Option("t", true, "The number of timer threads used for source generation");
     numThreadsOption.setRequired(true);
     options.addOption(numThreadsOption);
 
-    final Option numKeysOption = new Option("k", true,"The number of keys");
+    final Option numKeysOption = new Option("k", true, "The number of keys");
     numKeysOption.setRequired(true);
     options.addOption(numKeysOption);
 
-    final Option skewnessOption = new Option("s", true,"The zipfian skewness of key distribution");
+    final Option skewnessOption = new Option("s", true, "The zipfian skewness of key distribution");
     skewnessOption.setRequired(false);
     options.addOption(skewnessOption);
 
@@ -54,6 +54,11 @@ public class KafkaWordGeneratingSource {
     final Option sessionGapOption = new Option("sg", true, "The session gap");
     sessionGapOption.setRequired(false);
     options.addOption(sessionGapOption);
+
+    //for large window
+    final Option checkpointEndTimeOption = new Option("ch", true, "The checkpoint end time");
+    checkpointEndTimeOption.setRequired(false);
+    options.addOption(checkpointEndTimeOption);
 
     final CommandLineParser parser = new DefaultParser();
     final HelpFormatter formatter = new HelpFormatter();
@@ -74,10 +79,11 @@ public class KafkaWordGeneratingSource {
     final int numKeys = Integer.valueOf(cmd.getOptionValue("k"));
     final int marginSize = Integer.valueOf(cmd.getOptionValue("m"));
     final String wordGeneratorString = cmd.getOptionValue("w");
+    Long checkpointEndTime = Long.valueOf(cmd.getOptionValue("ch"));
 
     final Random random = new Random();
     final List<String> marginList = new ArrayList<>();
-    for (int i = 0; i < 10000; i ++) {
+    for (int i = 0; i < 10000; i++) {
       final byte[] marginBytes = new byte[marginSize];
       for (int j = 0; j < marginSize; j++) {
         marginBytes[j] = (byte) (random.nextInt(26) + 'a');
@@ -110,17 +116,25 @@ public class KafkaWordGeneratingSource {
       throw new IllegalArgumentException("Word generator should be one of uniform / zipfian / uniform-session!");
     }
 
+    final long timeDiff;
+    if (checkpointEndTime != null) {
+      timeDiff = System.currentTimeMillis() - checkpointEndTime;
+    } else{
+      timeDiff = 0;
+    }
+
     // Start timer threads.
     for (int i = 0; i < numThreads; i++) {
       final Timer timer = new Timer();
       timer.scheduleAtFixedRate(
-          new WordPublishRunner(
-              kafkaProducer,
-              wordGenerator,
-              "word",
-              (eventRatePerSecond / numThreads) / 10,
-              marginList),
-          100, 100);
+        new WordPublishRunner(
+          kafkaProducer,
+          wordGenerator,
+          "word",
+          (eventRatePerSecond / numThreads) / 10,
+          marginList,
+          timeDiff),
+        100, 100);
     }
     // Wait for 24 hrs.
     try {

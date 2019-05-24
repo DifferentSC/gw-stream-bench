@@ -20,7 +20,7 @@ public class Worker implements Runnable {
   public Worker(int subtaskNum, ArrayList<Integer> keysofThisSubtask) {
     this.subtaskNum = subtaskNum;
     this.keysofThisSubtask = keysofThisSubtask;
-    if (subtaskNum == (LargeScaleWindowSimul.numThreads - 1))
+    if (subtaskNum == (LargeScaleWindowSimul.numThreads - 1))//if last one, take care of remainders of total dataRate
       this.dataRate = LargeScaleWindowSimul.dataRate - (LargeScaleWindowSimul.numThreads - 1) * (LargeScaleWindowSimul.dataRate / LargeScaleWindowSimul.numThreads);
     else
       this.dataRate = LargeScaleWindowSimul.dataRate / LargeScaleWindowSimul.numThreads;
@@ -61,7 +61,6 @@ public class Worker implements Runnable {
 
     for (long timestamp = 0; timestamp < LargeScaleWindowSimul.windowSize * 1000; ) {
       for (int j = 0; j < this.dataRate; j++) {
-
         int selectedKey;
         while (true) {
           selectedKey = keysofThisSubtask.get(random.nextInt(keysofThisSubtask.size()));
@@ -87,7 +86,6 @@ public class Worker implements Runnable {
         }
         //this key is active
         final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
-
         logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
         //if it is max timestamp of the key, save it to keyToMaxTimestamp
@@ -100,7 +98,6 @@ public class Worker implements Runnable {
         else
           timestamp += 1000 / this.dataRate;
       }
-
     }
 
     System.out.println("\nflush~");
