@@ -15,10 +15,15 @@ public class Worker implements Runnable {
 
   int subtaskNum;
   ArrayList<Integer> keysofThisSubtask;
+  int dataRate;
 
   public Worker(int subtaskNum, ArrayList<Integer> keysofThisSubtask) {
     this.subtaskNum = subtaskNum;
     this.keysofThisSubtask = keysofThisSubtask;
+    if (subtaskNum == (LargeScaleWindowSimul.numThreads - 1))
+      this.dataRate = LargeScaleWindowSimul.dataRate - (LargeScaleWindowSimul.numThreads - 1) * (LargeScaleWindowSimul.dataRate / LargeScaleWindowSimul.numThreads);
+    else
+      this.dataRate = LargeScaleWindowSimul.dataRate / LargeScaleWindowSimul.numThreads;
   }
 
   @Override
@@ -54,19 +59,10 @@ public class Worker implements Runnable {
       keyToMaxTimestamp.put(i, (long) -1);
     }
 
-    for (long timestamp = 0; timestamp < LargeScaleWindowSimul.windowSize * 1000; timestamp++) {
-      if(timestamp == 1000)
-	    System.out.println("timestamp 1000");
-      else if(timestamp == 10000)
-	    System.out.println("timestamp 10000");
-      else if(timestamp == 50000)
-	    System.out.println("timestamp 50000");
-      else if(timestamp == 100000)
-	    System.out.println("timestamp 100000");
-      
-      for (int j = 0; j < LargeScaleWindowSimul.dataRate; j++) {
-        int selectedKey;
+    for (long timestamp = 0; timestamp < LargeScaleWindowSimul.windowSize * 1000; ) {
+      for (int j = 0; j < this.dataRate; j++) {
 
+        int selectedKey;
         while (true) {
           selectedKey = keysofThisSubtask.get(random.nextInt(keysofThisSubtask.size()));
 
@@ -90,22 +86,21 @@ public class Worker implements Runnable {
           }
         }
         //this key is active
-
-        //LargeScaleWindowSimul.timestampSerializer.serialize((long) timestamp, LargeScaleWindowSimul.timestampSerializationDataOutputView);
-
-        //final byte[] serializedTimestamp = LargeScaleWindowSimul.timestampSerializationStream.toByteArray();
-
         final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
 
         logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
-
         //if it is max timestamp of the key, save it to keyToMaxTimestamp
         if (keyToMaxTimestamp.get(selectedKey) < timestamp) {
-     	  keyToMaxTimestamp.put(selectedKey, timestamp);
+          keyToMaxTimestamp.put(selectedKey, timestamp);
         }
+
+        if (j == this.dataRate - 1)//if made all data, move to next second
+          timestamp = ((timestamp / 1000) + 1) * 1000;
+        else
+          timestamp += 1000 / this.dataRate;
       }
-      //additionally: how to trigger only at designated time, not in between
+
     }
 
     System.out.println("\nflush~");

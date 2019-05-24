@@ -1,6 +1,7 @@
 package edu.snu.splab.gwstreambench.simul;
 
 import org.apache.flink.util.FlinkRuntimeException;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,10 +34,6 @@ public class LogFileStore<K> {
       writeBuffer.computeIfAbsent(currentKey, (k) -> new ArrayList<>());
       wbForKey = writeBuffer.get(currentKey);
     }
-/*
-    if (wbForKey == null) {
-      System.out.println("wbfor key Null!");
-    }*/
 
     if (currentElement == null) {
       wbForKey.clear();
@@ -77,7 +74,7 @@ public class LogFileStore<K> {
               metadataFileOut.writeLong(-1L);
               metadataFileOut.writeInt(-1);
             } else {
-     	      groupFileOut.write(serializedData.length / 256);
+              groupFileOut.write(serializedData.length / 256);
               groupFileOut.write(serializedData.length % 256);
               // Write to value log file.
               groupFileOut.write(serializedData);
@@ -116,7 +113,7 @@ public class LogFileStore<K> {
       new FileOutputStream(this.savedMaxTimeStampFilePath.toFile(), true)));
     ) {
 
-      System.out.println("writeTimestamp to file called: "+this.savedMaxTimeStampFilePath.toString());	    
+      System.out.println("writeTimestamp to file called: " + this.savedMaxTimeStampFilePath.toString());
       for (Integer i = 0; i < keysofThisSubtask.size(); i++) {
         final Integer key = keysofThisSubtask.get(i);
         if (key % LargeScaleWindowSimul.groupNum == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file
