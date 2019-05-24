@@ -59,6 +59,7 @@ public class WindowedSamzaVLDBExp {
     final Integer parallelism;
     final boolean isEventTime;
     final Integer watermarkInterval;
+    final Long timeDiff;
 
     try {
       final ParameterTool params = ParameterTool.fromArgs(args);
@@ -83,6 +84,7 @@ public class WindowedSamzaVLDBExp {
       parallelism = params.getInt("parallelism");
       isEventTime = params.getBoolean("is_event_time");
       watermarkInterval = params.getInt("watermark_interval");
+      timeDiff = params.getLong("time_diff");
     } catch (final Exception e) {
       System.err.println("Missing configuration!" + e.toString());
       return;
@@ -248,7 +250,7 @@ public class WindowedSamzaVLDBExp {
           .window(EventTimeSessionWindows.withGap(Time.seconds(sessionGap)))
           .process(new CountProcessWithLatency())
           // Leave only the latencies
-          .map(x -> String.valueOf(System.currentTimeMillis() - x.f3))
+          .map(x -> String.valueOf(System.currentTimeMillis() - (x.f3 + timeDiff)))
           .returns(String.class);
       } else {
         // parse the data, group it, window it, and aggregate the counts
