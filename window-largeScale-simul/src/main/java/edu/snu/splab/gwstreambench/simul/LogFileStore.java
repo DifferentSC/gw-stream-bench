@@ -77,7 +77,6 @@ public class LogFileStore<K> {
               metadataFileOut.writeLong(-1L);
               metadataFileOut.writeInt(-1);
             } else {
-	      System.out.println("write to file: "+logFilePath.toString()+" "+this.logFilePath.toString());
      	      groupFileOut.write(serializedData.length / 256);
               groupFileOut.write(serializedData.length % 256);
               // Write to value log file.
@@ -116,6 +115,8 @@ public class LogFileStore<K> {
     try (final DataOutputStream timestampFileOut = new DataOutputStream(new BufferedOutputStream(
       new FileOutputStream(this.savedMaxTimeStampFilePath.toFile(), true)));
     ) {
+
+      System.out.println("writeTimestamp to file called: "+this.savedMaxTimeStampFilePath.toString());	    
       for (Integer i = 0; i < keysofThisSubtask.size(); i++) {
         final Integer key = keysofThisSubtask.get(i);
         if (key % LargeScaleWindowSimul.groupNum == groupNum) //if the key inside this subtask, belongs to THIS groupNum => write to this file

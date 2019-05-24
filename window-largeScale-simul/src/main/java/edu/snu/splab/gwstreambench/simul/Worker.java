@@ -55,6 +55,15 @@ public class Worker implements Runnable {
     }
 
     for (long timestamp = 0; timestamp < LargeScaleWindowSimul.windowSize * 1000; timestamp++) {
+      if(timestamp == 1000)
+	    System.out.println("timestamp 1000");
+      else if(timestamp == 10000)
+	    System.out.println("timestamp 10000");
+      else if(timestamp == 50000)
+	    System.out.println("timestamp 50000");
+      else if(timestamp == 100000)
+	    System.out.println("timestamp 100000");
+      
       for (int j = 0; j < LargeScaleWindowSimul.dataRate; j++) {
         int selectedKey;
 
@@ -88,18 +97,18 @@ public class Worker implements Runnable {
 
         final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
 
-        //System.out.println("WRITE key: "+selectedKey+", element: "+serializedElement);
         logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
 
         //if it is max timestamp of the key, save it to keyToMaxTimestamp
         if (keyToMaxTimestamp.get(selectedKey) < timestamp) {
-          keyToMaxTimestamp.put(selectedKey, timestamp);
+     	  keyToMaxTimestamp.put(selectedKey, timestamp);
         }
       }
       //additionally: how to trigger only at designated time, not in between
     }
 
+    System.out.println("\nflush~");
     //Finally, handle unwritten requests
     for (int j = 0; j < LargeScaleWindowSimul.groupNum; j++)//group number
     {
@@ -112,7 +121,4 @@ public class Worker implements Runnable {
 
   }
 
-  static byte[] getSerializedKey(int i) {
-    return LargeScaleWindowSimul.serializedKeys.get(i);
-  }
 }

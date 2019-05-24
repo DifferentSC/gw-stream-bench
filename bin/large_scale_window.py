@@ -78,8 +78,8 @@ java_large_scale_command_line = [
 
 
 print("Java job. Command line = "+str(java_large_scale_command_line)+"\n")
-submit_query = subprocess.Popen(java_large_scale_command_line)
-time.sleep(300)
+submit_query = subprocess.call(java_large_scale_command_line)
+#time.sleep(300)
 
 """
 #check whether flink job is running
