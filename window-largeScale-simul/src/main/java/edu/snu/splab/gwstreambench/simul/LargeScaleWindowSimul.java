@@ -260,7 +260,7 @@ public class LargeScaleWindowSimul {
     System.out.println("\nRead key-subtask mapping info txt...");
     Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();//per subtask, array of keys belonging to it
     try {
-      File file = new File("newpath.txt");
+      File file = new File("/home/ubuntu/gw-stream-bench/newpath.txt");
       FileReader filereader = new FileReader(file);
       BufferedReader bufReader = new BufferedReader(filereader);
       String line;

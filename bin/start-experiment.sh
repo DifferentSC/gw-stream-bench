@@ -75,10 +75,11 @@ ssh streamix-w 'sudo sh -c "echo 3 > /proc/sys/vm/drop_caches"'
 sleep 5
 ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh && /home/ubuntu/flink-nvme/build-target/bin/start-cluster.sh"
 sleep 5
-python bin/general_window_samza_vldb.py conf/rocksdb-session-window-10000.yml
-
+python bin/general_window_samza_vldb.py conf/streamix-session-large-window.yml
+:<<'END'
 sleep 60
 ssh streamix-k "/home/ubuntu/flink-nvme/build-target/bin/stop-cluster.sh"
 ssh streamix-w "sudo shutdown -h now"
 ssh streamix-k "sudo shutdown -h now"
 sudo shutdown -h now
+END
