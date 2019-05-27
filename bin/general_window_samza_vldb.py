@@ -53,9 +53,7 @@ if artificial_window and not is_event_time:
 
 if is_event_time:
     watermark_interval = configs['eventtime.watermark.interval']
-    max_out_of_orderness = configs['eventtime.max_out_of_orderness']
-
-else:
+    #max_out_of_orderness = configs['eventtime.max_out_of_orderness']
 
 # latency_deadline = int(configs['exp.latency_deadline'])
 slope_threshold = 10
@@ -148,23 +146,23 @@ sink_command_line = [
 """
 
 java_large_scale_command_line_prefix = [
+    "ssh",
+    "streamix-w",
     "java",
     "-jar",
-    "-Xms512m",
-    "-Xmx4g",
-    "./window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
-    "-w", str(configs['query.artificial.window.size']),
-    "-k", key_num,
-    "-m", value_margin,
+    #"-Xms512m",
+    #"-Xmx4g",
+    "/home/ubuntu/gw-stream-bench/window-largeScale-simul/target/window-largeScale-simul-1.0-SNAPSHOT-shaded.jar",
+    "-w", str(configs['exp.artificial_window.size']),
+    "-k", str(key_num),
+    "-m", str(value_margin),
     "-g", str(configs['streamix.file_num']),
-    "-t", parallelism,
+    "-t", str(parallelism),
     "-ast", str(configs['source.session.average_term']),
     "-sg", str(configs['query.window.session.gap']),
     "-i", str(configs['source.session.gap']),
-    "-sst", configs['streamix.path'],
+    "-sst", str(configs['streamix.path'])
 ]
-
-
 
 source_process = None
 
@@ -174,13 +172,16 @@ p95_deadline = 25000
 
 try:
     while failure_count < 5:
-
-        #run artificial window
         if artificial_window:
             java_large_scale_command_line = java_large_scale_command_line_prefix + [
                 "-d", str(current_event_rate)
             ]
-            run_artificial_window = subprocess.call(java_large_scale_command_line)
+            try:
+                print("\nRun java job on streamix-w\n")
+                print(java_large_scale_command_line)
+                ssh = subprocess.call(java_large_scale_command_line)
+            except:
+                print("\nError in java program\n")
 
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate)
@@ -188,15 +189,20 @@ try:
 
         if artificial_window :
             time_diff_flink = int(time.time()*1000.0)
-            time_diff_src = time_diff_flink - int(configs['query.artificial.window.size'])*1000
+            time_diff_src = time_diff_flink - int(configs['exp.artificial_window.size'])*1000
             source_command_line += [
                 "-td", str(time_diff_src)
             ]
             flink_command_line += [
                 "--time_diff", str(time_diff_flink)
             ]
+        else:
+            flink_command_line += [
+                "--time_diff", str(0)
+            ]
 
-        print("Start source process...")
+
+        print("\nStart source process...")
         # Start the source process
         print("Source commandline = %s " % str(source_command_line))
         source_process = subprocess.Popen(source_command_line)
@@ -359,7 +365,7 @@ except:
     print("Killing the source process and the flink job...")
     if source_process is not None:
         os.kill(source_process.pid, signal.SIGKILL)
-    requests.patch(flink_api_address + "/jobs/" + job_id)
+    #requests.patch(flink_api_address + "/jobs/" + job_id)
     print("Evaluation Interrupted!")
     requests.post(slack_webhook_url,
                   json={"text": "Evaluation interrupted!"})
