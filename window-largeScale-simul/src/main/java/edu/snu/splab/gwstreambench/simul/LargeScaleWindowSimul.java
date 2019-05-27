@@ -204,7 +204,9 @@ public class LargeScaleWindowSimul {
 
       //delete all files in directory
       System.out.println("clean directory..");
-      if(Files.exists(logFileDirectoryPath))
+
+      //if(Files.exists(logFileDirectoryPath))
+      if(Files.isDirectory(logFileDirectoryPath))
       {
         try {
             Files.walkFileTree(logFileDirectoryPath, new SimpleFileVisitor<Path>() {

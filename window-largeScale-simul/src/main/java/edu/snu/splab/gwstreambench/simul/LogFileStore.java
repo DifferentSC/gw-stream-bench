@@ -36,8 +36,8 @@ public class LogFileStore<K> {
     }
 
     if (currentElement == null) {
-      wbForKey.clear();
       synchronized (writeBuffer) {
+        wbForKey.clear();
         wbForKey.add(null);
       }
     } else {
@@ -61,11 +61,9 @@ public class LogFileStore<K> {
         long currentPos = Files.size(logFilePath);
         for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
           final int key = entry.getKey();
-
           final byte[] serializedKey = LargeScaleWindowSimul.serializedKeys.get(key);
 
           int size = 0;
-
           for (final byte[] serializedData : entry.getValue()) {
             if (serializedData == null) {
               // Write triggers
@@ -97,11 +95,11 @@ public class LogFileStore<K> {
       }
       throw new FlinkRuntimeException("Exception occurred while writing log files! " + builder.toString());
     } finally {
-
       synchronized (writeBuffer) {
         writeBuffer.clear();
+        pendingWrites = 0;
       }
-      pendingWrites = 0;
+
 
     }
   }
