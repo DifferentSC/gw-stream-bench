@@ -58,13 +58,13 @@ public class LogFileStore<K> {
            new FileOutputStream(this.logFilePath.toFile(), true))
     ) {
       synchronized (writeBuffer) {
+        long currentPos = Files.size(logFilePath);
         for (final Map.Entry<Integer, List<byte[]>> entry : writeBuffer.entrySet()) {
           final int key = entry.getKey();
 
           final byte[] serializedKey = LargeScaleWindowSimul.serializedKeys.get(key);
 
           int size = 0;
-          long currentPos = Files.size(logFilePath);
 
           for (final byte[] serializedData : entry.getValue()) {
             if (serializedData == null) {
