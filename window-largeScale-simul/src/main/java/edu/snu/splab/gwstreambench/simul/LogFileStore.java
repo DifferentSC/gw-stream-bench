@@ -99,8 +99,6 @@ public class LogFileStore<K> {
         writeBuffer.clear();
         pendingWrites = 0;
       }
-
-
     }
   }
 
