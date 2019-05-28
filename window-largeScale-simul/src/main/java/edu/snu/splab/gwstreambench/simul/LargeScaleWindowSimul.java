@@ -244,20 +244,20 @@ public class LargeScaleWindowSimul {
         Path savedMaxTimeStampFilePath = Paths.get(logFileDirectoryPath.toString(), maxTimeStampFileName);
 
         try {
-          if (!Files.exists(logFilePath)) {
+          //if (!Files.exists(logFilePath)) {
             System.out.println("create: "+logFilePath.toString());
             Files.createFile(logFilePath);
-          }
+          //}
 
-          if (!Files.exists(metadataLogFilePath)) {
+          //if (!Files.exists(metadataLogFilePath)) {
             System.out.println("create: "+metadataLogFilePath.toString());
             Files.createFile(metadataLogFilePath);
-          }
+          //}
 
-          if (!Files.exists(savedMaxTimeStampFilePath)) {
+          //if (!Files.exists(savedMaxTimeStampFilePath)) {
             System.out.println("create: "+savedMaxTimeStampFilePath.toString());
             Files.createFile(savedMaxTimeStampFilePath);
-          }
+          //}
         } catch (final IOException e) {
           throw new FlinkRuntimeException("Failed to create file", e);
         }
