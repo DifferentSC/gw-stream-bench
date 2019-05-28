@@ -217,12 +217,13 @@ public class LargeScaleWindowSimul {
               return FileVisitResult.CONTINUE;
             }
 
+            /*
             @Override
             public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
               Files.delete(dir);
               System.out.println("delete dir: " + dir.toString());
               return FileVisitResult.CONTINUE;
-            }
+            }*/
           });
         } catch(IOException e){
           e.printStackTrace();
