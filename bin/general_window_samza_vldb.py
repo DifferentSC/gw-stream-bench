@@ -190,6 +190,8 @@ try:
         if artificial_window :
             time_diff_flink = int(time.time()*1000.0)
             time_diff_src = time_diff_flink - int(configs['exp.artificial_window.size'])*1000
+            print("time_diff_flink: "+str(time_diff_flink))
+            print("time_diff_src: "+str(time_diff_src))
             source_command_line += [
                 "-td", str(time_diff_src)
             ]
