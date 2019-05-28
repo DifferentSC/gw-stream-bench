@@ -231,7 +231,8 @@ public class LargeScaleWindowSimul {
       }
 
       System.out.println("create directory & files..");
-      Files.createDirectories(logFileDirectoryPath);
+      if(!Files.isDirectory(logFileDirectoryPath))
+        Files.createDirectories(logFileDirectoryPath);
       for (int j = 0; j < groupNum; j++)//group number
       {
         String groupFileName = String.format(LOG_FILE_NAME_FORMAT, j);
