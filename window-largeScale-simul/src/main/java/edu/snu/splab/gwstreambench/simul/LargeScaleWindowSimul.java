@@ -262,6 +262,31 @@ public class LargeScaleWindowSimul {
       }
     }
 
+    //if(Files.exists(logFileDirectoryPath))
+    System.out.println("show files..");
+    if(Files.isDirectory(logFileDirectoryPath))
+    {
+      try {
+        Files.walkFileTree(logFileDirectoryPath, new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            System.out.println("file: " + file.toString());
+            //Files.delete(file);
+            return FileVisitResult.CONTINUE;
+          }
+
+          @Override
+          public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            //Files.delete(dir);
+            System.out.println("dir: " + dir.toString());
+            return FileVisitResult.CONTINUE;
+          }
+        });
+      } catch(IOException e){
+        e.printStackTrace();
+      }
+    }
+
     System.out.println("\nRead key-subtask mapping info txt...");
     Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();//per subtask, array of keys belonging to it
     try {
