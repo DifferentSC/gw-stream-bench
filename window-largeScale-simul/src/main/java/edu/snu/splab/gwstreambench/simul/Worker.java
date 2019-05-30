@@ -86,7 +86,13 @@ public class Worker implements Runnable {
           }
         }
         //this key is active
-        final byte[] serializedElement = ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
+
+        byte[] a = LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys));
+        byte[] b = LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp);
+        byte[] serializedElement = new byte[a.length + b.length];
+        System.arraycopy(a, 0 , serializedElement, 0, a.length);
+        System.arraycopy(b, 0 , serializedElement, a.length, b.length);
+        //byte[] serializedElement =  ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
         logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
         //if it is max timestamp of the key, save it to keyToMaxTimestamp

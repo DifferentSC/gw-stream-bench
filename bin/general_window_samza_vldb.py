@@ -63,7 +63,7 @@ state_backend = configs['state_backend']
 
 
 # submit the query firstly to flink
-flink_command_line = [
+flink_command_line_prefix = [
     "flink", "run",
     "./window-samza-vldb/target/window-samza-vldb-1.0-SNAPSHOT-shaded.jar",
     "--broker_address", kafka_address,
@@ -75,18 +75,18 @@ flink_command_line = [
 ]
 
 if query == "session-window":
-    flink_command_line += [
+    flink_command_line_prefix += [
         "--session_gap", str(configs['query.window.session.gap'])
     ]
 
 else:
-    flink_command_line += [
+    flink_command_line_prefix += [
         "--window_size", str(configs['query.window.size']),
         "--window_interval", str(configs['query.window.interval'])
     ]
 
 if state_backend == "rocksdb":
-    flink_command_line += [
+    flink_command_line_prefix += [
         "--rocksdb_path", configs['rocksdb.path'],
         "--block_cache_size", str(configs['rocksdb.block_cache_size']),
         "--write_buffer_size", str(configs['rocksdb.write_buffer_size']),
@@ -94,7 +94,7 @@ if state_backend == "rocksdb":
     ]
 
 elif state_backend == "streamix":
-    flink_command_line += [
+    flink_command_line_prefix += [
         "--state_store_path", configs['streamix.path'],
         "--batch_write_size", str(configs['streamix.batch_write_size']),
         "--batch_read_size", str(configs['streamix.batch_read_size']),
@@ -103,7 +103,7 @@ elif state_backend == "streamix":
     ]
 
 if is_event_time:
-    flink_command_line += [
+    flink_command_line_prefix += [
         "--watermark_interval", str(watermark_interval)
     ]
 
@@ -183,25 +183,24 @@ try:
             except:
                 print("\nError in java program\n")
 
-        source_command_line = source_command_line_prefix + [
-            "-r", str(current_event_rate)
-        ]
 
+        time_diff_flink = None
+        time_diff_src = None
         if artificial_window :
             time_diff_flink = int(time.time())*1000
             time_diff_src = time_diff_flink - int(configs['exp.artificial_window.size'])*1000
             print("time_diff_flink: "+str(time_diff_flink))
             print("time_diff_src: "+str(time_diff_src))
-            source_command_line += [
-                "-td", str(time_diff_src)
-            ]
-            flink_command_line += [
-                "--time_diff", str(time_diff_flink)
-            ]
         else:
-            flink_command_line += [
-                "--time_diff", str(0)
-            ]
+            time_diff_flink = 0
+
+        source_command_line = source_command_line_prefix + [
+            "-r", str(current_event_rate),
+            "-td", str(time_diff_src)
+        ]
+        flink_command_line = flink_command_line_prefix + [
+            "--time_diff", str(time_diff_flink)
+        ]
 
 
         print("\nStart source process...")

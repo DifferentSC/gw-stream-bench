@@ -234,7 +234,6 @@ public class WindowedSamzaVLDBExp {
 
       if (isEventTime) {
         // parse the data, group it, window it, and aggregate the counts
-        System.out.println("system time: "+System.currentTimeMillis()+" ,timeDiff: "+timeDiff);
         count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
             private final Tuple3<Integer, String, Long> result = new Tuple3<>();
