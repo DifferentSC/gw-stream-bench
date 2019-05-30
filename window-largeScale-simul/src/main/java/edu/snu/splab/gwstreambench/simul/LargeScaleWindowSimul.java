@@ -30,7 +30,7 @@ import org.apache.commons.io.FileUtils;
 
 public class LargeScaleWindowSimul {
 
-  static ArrayList<byte[]> serializedKeys = new ArrayList<>();
+
 
   //params
   static int windowSize;
@@ -48,6 +48,7 @@ public class LargeScaleWindowSimul {
   static TypeSerializer<Integer> keySerializer;
   static ByteArrayOutputStreamWithPos keySerializationStream;
   static DataOutputView keySerializationDataOutputView;
+  static ArrayList<byte[]> serializedKeys = new ArrayList<>();
 
   static TypeSerializer<String> marginSerializer;
   static ByteArrayOutputStreamWithPos marginSerializationStream;
