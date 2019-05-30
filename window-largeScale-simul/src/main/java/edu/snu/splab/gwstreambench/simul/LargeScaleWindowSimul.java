@@ -29,9 +29,6 @@ import akka.japi.Pair;
 import org.apache.commons.io.FileUtils;
 
 public class LargeScaleWindowSimul {
-
-
-
   //params
   static int windowSize;
   static int numKeys;
@@ -64,7 +61,6 @@ public class LargeScaleWindowSimul {
   public static final void main(final String[] args) throws Exception {
 
     System.out.println("Getting options...");
-
     final Options options = new Options();
 
     final Option windowSizeOpt = new Option("w", true, "window_size");
@@ -205,7 +201,6 @@ public class LargeScaleWindowSimul {
 
       //delete all files in directory
       System.out.println("clean directory..");
-
       //if(Files.exists(logFileDirectoryPath))
       if(Files.isDirectory(logFileDirectoryPath))
       {
@@ -263,10 +258,7 @@ public class LargeScaleWindowSimul {
           throw new FlinkRuntimeException("Failed to create file", e);
         }
       }
-
     }
-
-
 
     System.out.println("\nRead key-subtask mapping info txt...");
     Map<Integer, ArrayList<Integer>> subtaskKeys = new HashMap<>();//per subtask, array of keys belonging to it
@@ -314,6 +306,4 @@ public class LargeScaleWindowSimul {
 
     System.out.println("\nprogram finished");
   }
-
-
 }

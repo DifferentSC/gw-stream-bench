@@ -72,7 +72,6 @@ public class Worker implements Runnable {
               logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, null);
             }
 
-
             //defer selected key's active time
             Long newFirst = activeTimeMap.get(selectedKey).second() + LargeScaleWindowSimul.inactiveTime;
             Pair<Long, Long> pair = new Pair<>(newFirst, newFirst + random.nextInt(LargeScaleWindowSimul.averageSessionTerm * 2));
@@ -94,7 +93,6 @@ public class Worker implements Runnable {
         System.arraycopy(a, 0 , serializedElement, 0, a.length);
         System.arraycopy(b, 0 , serializedElement, a.length, b.length);
         System.arraycopy(c, 0 , serializedElement, a.length+b.length, c.length);
-        //byte[] serializedElement =  ArrayUtils.addAll(LargeScaleWindowSimul.serializedMargins.get(random.nextInt(LargeScaleWindowSimul.numKeys)), LargeScaleWindowSimul.serializedTimestamps.get((int) (long) timestamp));
 
         logFiles.get(selectedKey % LargeScaleWindowSimul.groupNum).write(selectedKey, serializedElement);
 
