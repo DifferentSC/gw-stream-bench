@@ -294,7 +294,7 @@ public class LargeScaleWindowSimul {
     Thread[] threads = new Thread[numThreads];//number of subtasks
     //create threads(per thread, 1 subtask)
     for (int i = 0; i < numThreads; i++) {
-      System.out.println("DEBUG: "+numThreads+" "+subtaskKeys.get(i));
+      System.out.println("DEBUG: "+i+" "+subtaskKeys.get(i));
       Runnable r = new Worker(i, subtaskKeys.get(i));//subtask num & keys belonging to it
       threads[i] = new Thread(r);
       threads[i].start();
