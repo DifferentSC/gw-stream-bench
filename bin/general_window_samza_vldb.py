@@ -193,6 +193,7 @@ try:
             print("time_diff_src: "+str(time_diff_src))
         else:
             time_diff_flink = 0
+            time_diff_src = 0
 
         source_command_line = source_command_line_prefix + [
             "-r", str(current_event_rate),
