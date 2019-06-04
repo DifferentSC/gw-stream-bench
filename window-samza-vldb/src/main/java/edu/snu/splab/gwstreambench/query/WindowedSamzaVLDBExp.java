@@ -233,6 +233,7 @@ public class WindowedSamzaVLDBExp {
       );
 
       if (isEventTime) {
+        System.out.println("event time session window");
         // parse the data, group it, window it, and aggregate the counts
         count = text
           .flatMap(new FlatMapFunction<String, Tuple3<Integer, String, Long>>() {
